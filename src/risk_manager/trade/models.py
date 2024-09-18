@@ -22,6 +22,7 @@ class User(models.Model):
     Args:
         models (_type_): _description_
     """
+    name = models.CharField(max_length=255)
 
 
 class Symbol(models.Model):

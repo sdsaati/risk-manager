@@ -1,0 +1,105 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-09-19 16:30+0330\n"
+"PO-Revision-Date: 2024-09-19 14:13+0330\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: fa\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Poedit 3.0.1\n"
+
+#: src/risk_manager/trade/templates/trade/layout.html:19
+msgid "En"
+msgstr ""
+
+#: src/risk_manager/trade/templates/trade/layout.html:20
+msgid "Fa"
+msgstr ""
+
+#: src/risk_manager/trade/templates/trade/layout.html:22
+msgid "Change Language"
+msgstr "تغییر زبان"
+
+#: src/risk_manager/trade/templates/trade/new.html:3
+msgid "something"
+msgstr "چیزی"
+
+#: src/risk_manager/trade/templates/trade/new.html:10
+msgid "Account reserve"
+msgstr ""
+
+#: src/risk_manager/trade/templates/trade/new.html:11
+msgid "Account balance"
+msgstr ""
+
+#: src/risk_manager/trade/templates/trade/new.html:12
+msgid "Account balance for trade"
+msgstr ""
+
+#: src/risk_manager/trade/templates/trade/new.html:13
+msgid "Symbol"
+msgstr ""
+
+#: src/risk_manager/trade/templates/trade/new.html:24
+msgid "Target"
+msgstr "قیمت هدف"
+
+#: src/risk_manager/trade/templates/trade/new.html:31
+msgid "Entry"
+msgstr "قیمت"
+
+#: src/risk_manager/trade/templates/trade/new.html:35
+msgid "R:R"
+msgstr "ریسک ریوارد"
+
+#: src/risk_manager/trade/templates/trade/new.html:39
+msgid "Amount"
+msgstr "مبلغ معامله"
+
+#: src/risk_manager/trade/templates/trade/new.html:43
+msgid "Commision"
+msgstr "کارمزد"
+
+#: src/risk_manager/trade/templates/trade/new.html:48
+msgid "TF"
+msgstr "تایم فریم"
+
+#: src/risk_manager/trade/templates/trade/new.html:52
+msgid "Strategy"
+msgstr "استراتژی"
+
+#: src/risk_manager/trade/templates/trade/new.html:57
+msgid "Stop Loss"
+msgstr "قیمت حد ضرر"
+
+#: src/risk_manager/trade/templates/trade/new.html:67
+msgid "New balance after trade"
+msgstr ""
+
+#: src/risk_manager/trade/templates/trade/new.html:68
+msgid "In case of loss"
+msgstr ""
+
+#: src/risk_manager/trade/templates/trade/new.html:69
+msgid "In case of win"
+msgstr ""
+
+#: src/risk_manager/trade/views.py:26
+msgid "New Trade"
+msgstr "ترید جدید"
+
+#~ msgid "English"
+#~ msgstr "انگلیسی"
+
+#~ msgid "فارسی"
+#~ msgstr "فارسی"

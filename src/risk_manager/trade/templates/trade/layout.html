@@ -1,10 +1,39 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
-<html>
-    <head>
-        <title></title>
-    </head>
-<body>
-{% block trade_index_content %}{% endblock trade_index_content %}
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <script src="{% static 'trade/tailwind.js' %}"></script>
+</head>
+
+<body
+    class="grid bg-gray-900 grid-cols-[20%_1fr_15%] gap-1 h-screen m-0 text-gray-400 grid-rows-[50px_1fr_70px_1fr_70px] grid-areas-[header_article_ads_nav_footer]">
+    <header id="pageHeader" class="bg-gray-800 p-2 col-span-3 col-span-1 row-span-1 text-right my-0">
+        <form class="m-0 h-8" action="{% url 'set_language' %}" method="post">
+            {% csrf_token %}
+            <select class="px-4 w-14 h-8 bg-slate-700/70 rounded" name="language">
+                <option value="en">{% trans "En" %}</option>
+                <option value="fa">{% trans "Fa" %}</option>
+            </select>
+            <button class="bg-slate-700/70 h-8 rounded px-1.5" type="submit">{% trans 'Change Language' %}</button>
+        </form>
+    </header>
+    <article id="mainArticle" class="bg-gray-800 p-5 col-span-1 row-span-1">Calculator</article>
+    <nav id="mainNav" class="bg-gray-800 p-5 col-span-1 row-span-1">
+        {% block trade_top_position %}{% endblock trade_top_position %}
+        {% block trade_position_content %}{% endblock trade_position_content %}
+        {% block trade_bot_position %}{% endblock trade_bot_position %}
+    </nav>
+    <div id="siteAds" class="bg-gray-800 p-5 col-span-1 grow-span-1">Calendar</div>
+    <footer id="pageFooter" class="bg-gray-800 p-5 col-span-3 col-span-1 row-span-1">Footer</footer>
+
+
+    {% block trade_index_content %}{% endblock trade_index_content %}
+    {% block trade_new_content %}{% endblock trade_new_content %}
 </body>
+
 </html>
