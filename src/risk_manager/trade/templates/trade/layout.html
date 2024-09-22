@@ -23,10 +23,13 @@
         </form>
     </header>
     <article id="mainArticle" class="bg-gray-800 p-5 col-span-1 row-span-1">Calculator</article>
-    <nav id="mainNav" class="bg-gray-800 p-5 col-span-1 row-span-1">
+    <nav id="mainNav" class="bg-gray-800 p-0 col-span-1 row-span-1">
+        <form action={% url 'new_trade_commit' %} method="post">
+        {% csrf_token %}
         {% block trade_top_position %}{% endblock trade_top_position %}
         {% block trade_position_content %}{% endblock trade_position_content %}
         {% block trade_bot_position %}{% endblock trade_bot_position %}
+        </form>
     </nav>
     <div id="siteAds" class="bg-gray-800 p-5 col-span-1 grow-span-1">Calendar</div>
     <footer id="pageFooter" class="bg-gray-800 p-5 col-span-3 col-span-1 row-span-1">Footer</footer>

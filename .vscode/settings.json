@@ -1,3 +1,8 @@
 {
-    "djlint.showInstallError": false
+    "djlint.showInstallError": false,
+    "editor.fontFamily": "'MonaSpiceNe Nerd Font', 'Droid Sans Mono', 'monospace', monospace",
+    "terminal.integrated.fontFamily": "'MonaSpiceNe Nerd Font'",
+    "errorLens.fontFamily": "'MonaSpiceNe Nerd Font'",
+    "notebook.output.fontFamily": "'MonaSpiceNe Nerd Font'",
+    "editor.codeLensFontFamily": "'MonaSpiceNe Nerd Font'"
 }

@@ -18,10 +18,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.views.i18n import set_language
+from debug_toolbar.toolbar import debug_toolbar_urls
 
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("set_language/", set_language, name='set_language'),
     path('trade/', include('trade.urls')),
-]
+] + debug_toolbar_urls()

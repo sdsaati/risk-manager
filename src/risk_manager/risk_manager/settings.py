@@ -26,6 +26,11 @@ SECRET_KEY = 'django-insecure-te(^e!sxn#ebqzvs0=)17d#_h*+pt&a-+6^h-5@!$kn%y!$5*^
 DEBUG = True
 
 ALLOWED_HOSTS = []
+INTERNAL_IPS = [
+    # ...
+    "127.0.0.1",
+    # ...
+]
 
 
 # Application definition
@@ -37,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "debug_toolbar",
     'trade'
 ]
 
@@ -49,6 +55,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.locale.LocaleMiddleware',
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 ROOT_URLCONF = 'risk_manager.urls'
