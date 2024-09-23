@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-19 16:30+0330\n"
-"PO-Revision-Date: 2024-09-19 14:13+0330\n"
+"POT-Creation-Date: 2024-09-23 18:24+0330\n"
+"PO-Revision-Date: 2024-09-23 18:26+0330\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: fa\n"
@@ -30,71 +30,99 @@ msgstr ""
 msgid "Change Language"
 msgstr "تغییر زبان"
 
+#: src/risk_manager/trade/templates/trade/layout.html:25
+msgid "Calculator"
+msgstr "ماشین حساب"
+
+#: src/risk_manager/trade/templates/trade/layout.html:34
+msgid "Calendar"
+msgstr "تقویم"
+
+#: src/risk_manager/trade/templates/trade/layout.html:35
+msgid "Footer"
+msgstr "فوتر"
+
 #: src/risk_manager/trade/templates/trade/new.html:3
 msgid "something"
 msgstr "چیزی"
 
-#: src/risk_manager/trade/templates/trade/new.html:10
+#: src/risk_manager/trade/templates/trade/new.html:9
 msgid "Account reserve"
-msgstr ""
+msgstr "میزان رزرو"
+
+#: src/risk_manager/trade/templates/trade/new.html:10
+msgid "Account balance"
+msgstr "موجودی"
 
 #: src/risk_manager/trade/templates/trade/new.html:11
-msgid "Account balance"
-msgstr ""
+msgid "Account balance for trade"
+msgstr "موجودی برای ترید"
 
 #: src/risk_manager/trade/templates/trade/new.html:12
-msgid "Account balance for trade"
-msgstr ""
+msgid "Symbol"
+msgstr "سهم"
 
 #: src/risk_manager/trade/templates/trade/new.html:13
-msgid "Symbol"
-msgstr ""
+msgid "Broker"
+msgstr "کارگزار"
 
-#: src/risk_manager/trade/templates/trade/new.html:24
+#: src/risk_manager/trade/templates/trade/new.html:28
 msgid "Target"
 msgstr "قیمت هدف"
 
-#: src/risk_manager/trade/templates/trade/new.html:31
+#: src/risk_manager/trade/templates/trade/new.html:35
 msgid "Entry"
 msgstr "قیمت"
 
-#: src/risk_manager/trade/templates/trade/new.html:35
+#: src/risk_manager/trade/templates/trade/new.html:39
 msgid "R:R"
 msgstr "ریسک ریوارد"
 
-#: src/risk_manager/trade/templates/trade/new.html:39
+#: src/risk_manager/trade/templates/trade/new.html:43
 msgid "Amount"
 msgstr "مبلغ معامله"
 
-#: src/risk_manager/trade/templates/trade/new.html:43
+#: src/risk_manager/trade/templates/trade/new.html:47
 msgid "Commision"
 msgstr "کارمزد"
 
-#: src/risk_manager/trade/templates/trade/new.html:48
+#: src/risk_manager/trade/templates/trade/new.html:52
 msgid "TF"
 msgstr "تایم فریم"
 
-#: src/risk_manager/trade/templates/trade/new.html:52
+#: src/risk_manager/trade/templates/trade/new.html:56
 msgid "Strategy"
 msgstr "استراتژی"
 
-#: src/risk_manager/trade/templates/trade/new.html:57
+#: src/risk_manager/trade/templates/trade/new.html:61
 msgid "Stop Loss"
 msgstr "قیمت حد ضرر"
 
-#: src/risk_manager/trade/templates/trade/new.html:67
+#: src/risk_manager/trade/templates/trade/new.html:71
 msgid "New balance after trade"
-msgstr ""
+msgstr "موجودی جدید بعد از ترید"
 
-#: src/risk_manager/trade/templates/trade/new.html:68
+#: src/risk_manager/trade/templates/trade/new.html:72
 msgid "In case of loss"
-msgstr ""
+msgstr "در صورت ضرر"
 
-#: src/risk_manager/trade/templates/trade/new.html:69
+#: src/risk_manager/trade/templates/trade/new.html:73
 msgid "In case of win"
-msgstr ""
+msgstr "در صورت سود"
 
-#: src/risk_manager/trade/views.py:26
+#: src/risk_manager/trade/templates/trade/new.html:74
+msgid "Save"
+msgstr "ذخیره"
+
+#: src/risk_manager/trade/views.py:44
+msgid "Saved"
+msgstr "ذخیره شده"
+
+#: src/risk_manager/trade/views.py:44
+msgid "Not Saved Yet"
+msgstr "ذخیره نشده"
+
+#: src/risk_manager/trade/views.py:45
 msgid "New Trade"
 msgstr "ترید جدید"
 

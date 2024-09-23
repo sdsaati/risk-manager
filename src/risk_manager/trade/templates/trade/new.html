@@ -4,54 +4,59 @@
 <!-- Width of 16 by default, 32 on medium screens, and 48 on large screens ex:w-16 -->
 {% comment %} the top sectoin of the postion box {% endcomment %}
 {% block trade_top_position %}
-    <div class="grid grid-rows-[1fr_1fr] grid-cols-[1fr_1fr] w-auto text-sm text-center">
-        <span>{% trans "Account reserve" %} : <span>12</span></span>
-        <span>{% trans "Account balance" %} : <span>13</span></span>
-        <span>{% trans "Account balance for trade" %} : <span>14</span></span>
-        <span>{% trans "Symbol" %} : <span>15</span></span>
+    <div class="grid grid-rows-[1fr_1fr] grid-cols-[1fr_1fr] w-auto text-sm text-center justify-items-start">
+        <span class="px-1 py-0 text-center">{% trans "Account reserve" %} : <span>12</span></span>
+        <span class="px-1 py-0 text-center">{% trans "Account balance" %} : <span>13</span></span>
+        <span class="px-1 py-0 text-center">{% trans "Account balance for trade" %} : <span>14</span></span>
+        <span class="px-1 py-0 text-center"><span>{% trans "Symbol" %} : <input name='symbol' oninput="this.value = this.value.toUpperCase();" class="bg-black/25 px-2.5 rounded" placeholder="BTC"></span></span>
+        <span class="px-1 py-0 text-center"><span>{% trans "Broker" %} : 
+            <select name='broker' placeholder="mexc" oninput="this.value = this.value.toLowerCase();" class="bg-black/25 px-2.5 rounded">
+                <option id="mexc" value="mexc">MEXC</option>
+                <option id="mofid" value="mofid">Mofid</option>
+            </select>
+    </span></span>
     </div>
 {% endblock trade_top_position %}
 
 {% comment %} Positoin box {% endcomment %}
 {% block trade_position_content %}
-    <script src="{% static 'trade/tailwind.js' %}"></script>
-    <div class="w-auto h-96 relative border-2 border-neutral-600 shadow place-self-center justify-self-center">
+    <div class="w-auto h-80 relative border-2 border-neutral-600 shadow place-self-center justify-self-center">
     <!-- Target Area (Green) -->
-    <div class="bg-teal-700 h-3/5 flex justify-center items-center text-white">
-        <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 text-base font-bold rounded top-[3%]">{% trans 'Target' %}</span>
+    <div class="bg-teal-700/25 h-3/5 flex justify-center items-center text-white">
+        <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 text-base font-bold rounded top-[2%]">{% trans 'Target' %}</span>
         <input name="target" class="w-44 absolute bg-black/50 px-2.5 py-1 rounded top-[13%]" type="text">
     </div>
 
     <!-- Entry Line -->
     <div class="absolute w-full h-0.5 bg-black"></div>
     <!-- Entry -->
-    <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 text-white font-bold text-base rounded top-[38%] left-[41%]">{% trans 'Entry' %}</span>
+    <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 text-white font-bold text-base rounded top-[37%] left-[41%]">{% trans 'Entry' %}</span>
     <input name="entry" class="w-44 absolute bg-black/50 px-2.5 py-1 text-white rounded top-[48%] left-[38%]" type="text">
 
     <!-- R:R -->
-    <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 text-white font-bold text-base rounded top-[38%] left-[4%]">{% trans 'R:R' %}</span>
+    <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 text-white font-bold text-base rounded top-[37%] left-[4%]">{% trans 'R:R' %}</span>
     <input name="riskReward" class="w-44 absolute bg-black/50 px-2.5 py-1 text-white rounded top-[48%] left-[1%]" type="text">
 
     <!-- Amount -->
-    <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 text-white font-bold text-base rounded top-[3%] left-[4%]">{% trans 'Amount' %}</span>
+    <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 text-white font-bold text-base rounded top-[2%] left-[4%]">{% trans 'Amount' %}</span>
     <input name="amount" class="w-44 absolute bg-black/50 px-2.5 text-white py-1 rounded top-[13%] left-[1%]" type="text">
 
     <!-- Commission -->
     <span class="absolute w-32 text-center bg-black/50 text-white font-bold text-base px-2.5 py-1 rounded bottom-[17%] left-[4%]">{% trans 'Commision' %}</span>
-    <input name="commission" class="w-44 absolute bg-black/50 text-white px-2.5 py-1 rounded bottom-[27%] left-[1%]" type="text">
+    <input name="commission" class="w-44 absolute bg-black/50 text-white px-2.5 py-1 rounded bottom-[28%] left-[1%]" type="text">
 
 
     <!-- time frame -->
-    <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 text-white font-bold text-base rounded top-[38%] right-[4%]">{% trans 'TF' %}</span>
+    <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 text-white font-bold text-base rounded top-[37%] right-[4%]">{% trans 'TF' %}</span>
     <input name="timeframe" class="w-44 absolute bg-black/50 px-2.5 py-1 text-white rounded top-[48%] right-[1%]" type="text">
 
     <!-- strategy -->
     <span class="absolute w-32 text-center bg-black/50 text-white font-bold text-base px-2.5 py-1 rounded bottom-[17%] right-[4%]">{% trans 'Strategy' %}</span>
-    <input name="strategy" class="w-44 absolute bg-black/50 text-white px-2.5 py-1 rounded bottom-[27%] right-[1%]" type="text">
+    <input name="strategy" class="w-44 absolute bg-black/50 text-white px-2.5 py-1 rounded bottom-[28%] right-[1%]" type="text">
 
     <!-- Stop Loss Area (Red) -->
-    <div class="bg-red-900 h-2/5 flex text-white justify-center items-center">
-        <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 font-bold text-base rounded bottom-[3%]">{% trans 'Stop Loss' %}</span>
+    <div class="bg-red-900/25 h-2/5 flex text-white justify-center items-center">
+        <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 font-bold text-base rounded bottom-[2%]">{% trans 'Stop Loss' %}</span>
         <input name="stop" class="w-44 absolute bg-black/50 px-2.5 py-1 rounded bottom-[13%]" type="text">
     </div>
     </div>
@@ -60,10 +65,10 @@
 {% comment %} the bottom sectoin of the postion box {% endcomment %}
 {% block trade_bot_position %}
     <div class="grid grid-rows-[1fr_1fr_1fr] w-auto text-sm text-center">
-        <span>{% trans "New balance after trade" %}</span> 
+        <span class="px-20">{% trans "New balance after trade" %}</span> 
         <span class="px-20">{% trans "In case of loss" %}: <span>20</span></span>
         <span class="px-20">{% trans "In case of win" %}: <span>40</span></span>
-        <button class="bg-slate-700/70 h-8 rounded px-1.5">Save</button>
+        <button class="bg-slate-700/70 h-8 rounded px-1.5">{% trans 'Save' %}</button>
         {{commited}}
     </div>
 {% endblock trade_bot_position %}

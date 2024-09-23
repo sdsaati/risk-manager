@@ -22,21 +22,39 @@
             <button class="bg-slate-700/70 h-8 rounded px-1.5" type="submit">{% trans 'Change Language' %}</button>
         </form>
     </header>
-    <article id="mainArticle" class="bg-gray-800 p-5 col-span-1 row-span-1">Calculator</article>
+    <article id="mainArticle" class="bg-gray-800 p-5 col-span-1 row-span-1">{% trans 'Calculator' %}</article>
     <nav id="mainNav" class="bg-gray-800 p-0 col-span-1 row-span-1">
-        <form action={% url 'new_trade_commit' %} method="post">
+        <form action={% url 'new_trade_commit' %} method="post" onsubmit="return validateForm();">
         {% csrf_token %}
         {% block trade_top_position %}{% endblock trade_top_position %}
         {% block trade_position_content %}{% endblock trade_position_content %}
         {% block trade_bot_position %}{% endblock trade_bot_position %}
         </form>
     </nav>
-    <div id="siteAds" class="bg-gray-800 p-5 col-span-1 grow-span-1">Calendar</div>
-    <footer id="pageFooter" class="bg-gray-800 p-5 col-span-3 col-span-1 row-span-1">Footer</footer>
+    <div id="siteAds" class="bg-gray-800 p-5 col-span-1 grow-span-1">{% trans 'Calendar' %}</div>
+    <footer id="pageFooter" class="bg-gray-800 p-5 col-span-3 col-span-1 row-span-1">{% trans 'Footer' %}</footer>
 
 
     {% block trade_index_content %}{% endblock trade_index_content %}
     {% block trade_new_content %}{% endblock trade_new_content %}
+    <script>
+        function validateForm()
+        {
+            // Get all input elements in the form
+            const inputs = document.querySelectorAll('input');
+
+            // Loop through each input
+            inputs.forEach(function(input) {
+                // If the input is empty, set its value to the placeholder
+                if (!input.value) {
+                    input.value = input.placeholder;
+                }
+            });
+
+            // Now submit the form after updating the input values
+            return true;
+        }
+    </script>
 </body>
 
 </html>

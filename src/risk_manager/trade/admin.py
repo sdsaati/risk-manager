@@ -13,12 +13,6 @@ class MyModelAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(User)
-class MyModelAdmin(admin.ModelAdmin):
-    list_display = ('name', 'id')
-    search_fields = ('name',)
-
-
 @admin.register(UserBroker)
 class MyModelAdmin(admin.ModelAdmin):
     pass

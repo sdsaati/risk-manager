@@ -19,10 +19,19 @@ from django.contrib import admin
 from django.urls import path, include
 from django.views.i18n import set_language
 from debug_toolbar.toolbar import debug_toolbar_urls
-
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
+    # urls for admin application
     path("admin/", admin.site.urls),
+
+    path("accounts/", include("django.contrib.auth.urls")),
+    # we also can create path for each login, logout, etc like below:
+    # path("accounts/login/", auth_views.LoginView.as_view()),
+
+    # set the urls for detecting the language of user
     path("set_language/", set_language, name='set_language'),
+
+    # trade application urls
     path('trade/', include('trade.urls')),
 ] + debug_toolbar_urls()
