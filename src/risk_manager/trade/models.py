@@ -31,6 +31,10 @@ class Symbol(models.Model):
     broker = models.ForeignKey(Broker, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
 
+    # if this is null, then we must use the
+    # Broker.defaultCommission value for this field
+    commission = models.FloatField()
+
 
 class UserSymbol(models.Model):
     """ Third table between users and symbols = Trade Table.
@@ -41,19 +45,18 @@ class UserSymbol(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     symbol = models.ForeignKey(Symbol, on_delete=models.CASCADE)
-    date = models.DateTimeField()
+    date = models.DateTimeField(auto_now_add=True)
     result = models.BooleanField(null=True, blank=True)
     entry = models.FloatField()
     amount = models.FloatField()
     target = models.FloatField()
     stop = models.FloatField()
     riskReward = models.PositiveIntegerField()
-    commission = models.FloatField(default=0.0)
     picture = models.CharField(max_length=500, null=True, default="")
-    comment = models.TextField()
+    comment = models.TextField(null=True)
     isPositionChanged = models.BooleanField(default=False)
-    timeFrame = models.CharField(max_length=400)
-    strategy = models.CharField(max_length=500)
+    timeFrame = models.CharField(max_length=400, null=True)
+    strategy = models.CharField(max_length=500, null=True)
 
 
 class UserBroker(models.Model):

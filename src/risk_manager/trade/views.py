@@ -43,7 +43,9 @@ def new(req):
         break
     commited = _('Saved') if msg is not None else _('Not Saved Yet')
     title = _('New Trade')
+    # --------------------------------------------------------------
 
+    broker = Broker.objects.all()
     return render(req, 'trade/new.html', locals())
 
 
@@ -57,41 +59,74 @@ def new_commit(req):
     """
     p = funcs.Post(req)  # validate and get the posted data
     # Let's get our models and create a new instance
-    broker = Broker()
-    symbol = Symbol()
-    user = None
-    user_broker = UserBroker()
-    us = UserSymbol()
+    broker: Broker = None
+    symbol: Symbol = None
+    user: User = None
+    commission: float = None
+    user_broker: UserBroker = None
+    us: UserSymbol = UserSymbol()
 
     if req.user.is_authenticated:
-        user = User(username=req.user)
+        # a new instance of user
+        user = User.objects.get(username=req.user)
+
+        # Relationsihp
         us.user = user
     else:
         # We should go to log-in page
         redirect('accounts/login')
 
-    symbol.name = p.get('symbol')
-    broker.name = p.get('broker')
-    user_broker.broker = broker
+    # find the broker and put it inside a new instance
+    broker, created = Broker.objects.get_or_create(name=p.get('broker'))
+
+    # determine the commission
+    if p.get('commission') is not None and p.get('commission') != '':
+        commission = float(p.get('commission'))
+    else:
+        commission = float(broker.defaultCommission)
+
+    symbol, created = Symbol.objects.get_or_create(
+        name=p.get('symbol'),
+        broker=broker,
+        commission=commission
+    )
+
+    # Relationship, and we know that already there exists a user and a symbol
+    # we already created
+    us = UserSymbol.objects.create(
+        user=user,
+        symbol=symbol,
+        entry=float(p.get('entry', 0.0)),
+        stop=float(p.get('stop', 0.0)),
+        target=float(p.get('target', 0.0)),
+        amount=float(p.get('amount', 0.0)),
+        riskReward=int(p.get('riskReward', 2)),
+        picture=p.get('picture'),
+        comment=p.get('comment'),
+        timeFrame=p.get('timeframe'),
+        strategy=p.get('strategy'),
+    )
+
+    # fill the Relationship of UserBroker with broker and user
+    try:
+        user_broker = UserBroker.objects.get(
+            broker=broker,
+            user=user
+        )
+    except UserBroker.DoesNotExist:
+        user_broker = None
+
+    # TODO
     # user_broker.balance =
-    user_broker.user = user
     # user_broker.riskPercent =
     # user_broker.reserve =
-    us.symbol = symbol
-    us.entry = p.get('entry')
-    us.target = p.get('target')
-    us.stop = p.get('stop')
-    # us.date =
-    # us.result = p.get('result')
-    us.amount = p.get('amount')
-    us.riskReward = p.get('riskReward')
-    us.commission = p.get('commission')
-    us.picture = p.get('picture')
-    us.comment = p.get('comment')
-    us.isPositionChanged = p.get('')
-    us.timeFrame = p.get('timeframe')
-    us.strategy = p.get('strategy')
 
+    # TODO
+    # us.result = p.get('result')
+    # TODO
+    # us.isPositionChanged = bool(p.get(''))
+
+    # EXAMPLE
     # trades = UserSymbol.objects.get(id='')
     url = reverse('new_trade', kwargs={}, )
     messages.info(req, "success")

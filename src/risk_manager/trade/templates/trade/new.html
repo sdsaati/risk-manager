@@ -11,8 +11,9 @@
         <span class="px-1 py-0 text-center"><span>{% trans "Symbol" %} : <input name='symbol' oninput="this.value = this.value.toUpperCase();" class="bg-black/25 px-2.5 rounded" placeholder="BTC"></span></span>
         <span class="px-1 py-0 text-center"><span>{% trans "Broker" %} : 
             <select name='broker' placeholder="mexc" oninput="this.value = this.value.toLowerCase();" class="bg-black/25 px-2.5 rounded">
-                <option id="mexc" value="mexc">MEXC</option>
-                <option id="mofid" value="mofid">Mofid</option>
+                {% for b in broker %}
+                <option id="{{b.name}}" value="{{b.name}}">{{b.name}}</option>
+                {% endfor %}
             </select>
     </span></span>
     </div>

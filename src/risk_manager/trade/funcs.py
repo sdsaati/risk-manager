@@ -17,10 +17,18 @@ class Post:
         if self.req.method == 'POST':
             self.exists_post = True
 
-    def get(self, name: str):
-        if self.exists_post:
+    def get(self, name: str, default=None):
+        if self.exists_post and self.post.get(name) != '':
             return self.post.get(name)
+        elif self.post.get(name) == '':
+            return default
+        else:
+            return None
 
-    def get_t(self, name: str):
-        if self.exists_post:
+    def get_t(self, name: str, default=None):
+        if self.exists_post and self.post.get(name) != '':
             return _(self.post.get(name))
+        elif self.post.get(name) == '':
+            return default
+        else:
+            return None
