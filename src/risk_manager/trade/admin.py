@@ -10,7 +10,7 @@ class MyModelAdmin(admin.ModelAdmin):
 
 @admin.register(UserSymbol)
 class MyModelAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('user', 'result', 'amount')
 
 
 @admin.register(UserBroker)

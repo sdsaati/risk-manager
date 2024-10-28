@@ -10,8 +10,7 @@
     <script src="{% static 'trade/tailwind.js' %}"></script>
 </head>
 
-<body
-    class="grid bg-gray-900 grid-cols-[20%_1fr_15%] gap-1 h-screen m-0 text-gray-400 grid-rows-[50px_1fr_70px_1fr_70px] grid-areas-[header_article_ads_nav_footer]">
+<body class="grid bg-gray-900 grid-cols-[20%_1fr_15%] gap-1 h-screen m-0 text-gray-400 grid-rows-[50px_1fr_70px_1fr_70px] grid-areas-[header_article_ads_nav_footer]">
     <header id="pageHeader" class="bg-gray-800 p-2 col-span-3 col-span-1 row-span-1 text-right my-0">
         <form class="m-0 h-8" action="{% url 'set_language' %}" method="post">
             {% csrf_token %}

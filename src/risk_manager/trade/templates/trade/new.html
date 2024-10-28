@@ -5,8 +5,8 @@
 {% comment %} the top sectoin of the postion box {% endcomment %}
 {% block trade_top_position %}
     <div class="grid grid-rows-[1fr_1fr] grid-cols-[1fr_1fr] w-auto text-sm text-center justify-items-start">
-        <span class="px-1 py-0 text-center">{% trans "Account reserve" %} : <span>12</span></span>
-        <span class="px-1 py-0 text-center">{% trans "Account balance" %} : <span>13</span></span>
+        <span class="px-1 py-0 text-center">{% trans "Account reserve" %} : <span>{{ user_broker.reserve }}</span></span>
+        <span class="px-1 py-0 text-center">{% trans "Account balance" %} : <span>{{ user_broker.balance }}</span></span>
         <span class="px-1 py-0 text-center">{% trans "Account balance for trade" %} : <span>14</span></span>
         <span class="px-1 py-0 text-center"><span>{% trans "Symbol" %} : <input name='symbol' oninput="this.value = this.value.toUpperCase();" class="bg-black/25 px-2.5 rounded" placeholder="BTC"></span></span>
         <span class="px-1 py-0 text-center"><span>{% trans "Broker" %} : 
