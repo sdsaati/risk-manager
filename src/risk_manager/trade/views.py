@@ -46,6 +46,8 @@ def new(req):
     # --------------------------------------------------------------
 
     broker = Broker.objects.all()
+    user_symbol = UserSymbol.objects.all()
+    user_broker = UserBroker.objects.all()
     return render(req, 'trade/new.html', locals())
 
 
@@ -100,7 +102,7 @@ def new_commit(req):
         stop=float(p.get('stop', 0.0)),
         target=float(p.get('target', 0.0)),
         amount=float(p.get('amount', 0.0)),
-        riskReward=int(p.get('riskReward', 2)),
+        riskReward=float(p.get('riskReward', 2)),
         picture=p.get('picture'),
         comment=p.get('comment'),
         timeFrame=p.get('timeframe'),

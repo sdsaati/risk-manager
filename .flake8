@@ -1,0 +1,4 @@
+# .pep8 or setup.cfg
+
+[flake8]
+max-line-length=100
