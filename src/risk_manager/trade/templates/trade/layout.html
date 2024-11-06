@@ -8,6 +8,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
     <script src="{% static 'trade/tailwind.js' %}"></script>
+    <script src="{% static 'trade/jquery-3.7.1.min.js.js' %}"></script>
+    <script src="{% static 'trade/decimal.js' %}"></script>
+    <script type="module">
+        import Decimal from "{% static 'trade/decimal.mjs' %}";
+    </script>
+    <script>
+    /* Running */
+    $(document).ready(function(){
+    $("input").change(compute_amount)
+    });
+    </script>
 </head>
 
 <body class="grid bg-gray-900 grid-cols-[20%_1fr_15%] gap-1 h-screen m-0 text-gray-400 grid-rows-[50px_1fr_70px_1fr_70px] grid-areas-[header_article_ads_nav_footer]">
@@ -23,7 +34,7 @@
     </header>
     <article id="mainArticle" class="bg-gray-800 p-5 col-span-1 row-span-1">{% trans 'Calculator' %}</article>
     <nav id="mainNav" class="bg-gray-800 p-0 col-span-1 row-span-1">
-        <form action={% url 'new_trade_commit' %} method="post" onsubmit="return validateForm();">
+        <form id="dataform" action={% url 'new_trade_commit' %} method="post" onsubmit="return validateForm();">
         {% csrf_token %}
         {% block trade_top_position %}{% endblock trade_top_position %}
         {% block trade_position_content %}{% endblock trade_position_content %}
@@ -54,6 +65,7 @@
             return true;
         }
     </script>
+    <script src="{% static 'trade/trade.js' %}"></script>
 </body>
 
 </html>

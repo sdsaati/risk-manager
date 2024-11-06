@@ -9,4 +9,6 @@ urlpatterns = [
     path('new/<str:status>/', views.new, name='new_trade_with_status'),
     path('new-commit/', views.new_commit,
          name='new_trade_commit'),  # saving into db
+    path('api_commission/', views.api_commission, name="api_commission"),
+    path('api_risk/', views.api_risk, name="api_risk")
 ]

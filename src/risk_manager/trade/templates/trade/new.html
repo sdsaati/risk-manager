@@ -2,8 +2,59 @@
 {% load static %} <!-- this will let us to use static -->
 {% load i18n %} <!-- to use {% trans 'something' %} -->
 <!-- Width of 16 by default, 32 on medium screens, and 48 on large screens ex:w-16 -->
-{% comment %} the top sectoin of the postion box {% endcomment %}
+{% comment %} the top sectoin of the position box {% endcomment %}
 {% block trade_top_position %}
+<script>
+    // window.risk = {{ risk }} 
+
+    async function get_risk(broker){
+        const url = "{% url 'api_risk' %}?broker="+broker
+        return await fetch(url,{
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+        }).then(response => response.json()).then(data => {
+            window.risk = data
+            console.log("data from server is ", data)
+            return data
+        }).catch(error => console.error("Error:", error));
+        }
+
+    async function get_commission(symbol, broker){
+        const url = "{% url 'api_commission' %}?symbol="+symbol+"&broker="+broker
+        return await fetch(url,{
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+        .then(response => response.json()).then(data => {
+            window.commission = data
+            console.log("data from server is ", data)
+            return data
+        })
+        .catch(error => console.error("Error:", error));
+        }
+    async function compute_amount(input) {
+        const entry = new Decimal(document.getElementsByName('entry')[0].value || 0)
+        const stop = new Decimal(document.getElementsByName('stop')[0].value || 0)
+        const amountel = new Decimal(document.getElementsByName('amount')[0].value || 0)
+        const symbol = document.getElementsByName('symbol')[0].value
+        const broker = document.getElementsByName('broker')[0].value
+        let stop_percent = entry.minus(stop).dividedBy(entry).times(100)
+        let risk = await get_risk(broker)
+        let commission = await get_commission(symbol, broker)
+        console.log("risk is ", risk)
+        let amount = new Decimal(risk)
+        amount = amount.dividedBy((stop_percent.plus(commission).dividedBy(100)))
+        document.getElementsByName('amount')[0].value = amount.toFixed(4) 
+        console.log('risk is: ', risk, "type of risk is :", typeof (risk), ' and commission is: ', commission)
+        console.log(amount.toFixed(4))
+    }
+
+
+</script>
     <div class="grid grid-rows-[1fr_1fr] grid-cols-[1fr_1fr] w-auto text-sm text-center justify-items-start">
         <span class="px-1 py-0 text-center">{% trans "Account reserve" %} : <span>{{ user_broker.reserve }}</span></span>
         <span class="px-1 py-0 text-center">{% trans "Account balance" %} : <span>{{ user_broker.balance }}</span></span>

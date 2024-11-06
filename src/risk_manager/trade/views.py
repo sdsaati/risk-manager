@@ -1,6 +1,7 @@
 """
 You must write your views here, views are just some functions
 """
+from icecream import ic
 from django.shortcuts import render  # returns a HttpResponse
 from django.shortcuts import redirect
 from django.http import HttpResponsePermanentRedirect
@@ -15,6 +16,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 # from django.contrib.auth import login
 # from django.contrib.auth import authenticate
+from django.http import JsonResponse
 
 
 def index(req):
@@ -46,8 +48,11 @@ def new(req):
     # --------------------------------------------------------------
 
     broker = Broker.objects.all()
-    user_symbol = UserSymbol.objects.get(user=req.user)
-    user_broker = UserBroker.objects.get(user=req.user)
+    # FIXME: the 4 lines below must be an API so that client can get them
+    # user_symbol = UserSymbol.objects.get(user=req.user)
+    # user_broker = UserBroker.objects.get(user=req.user)
+    # risk = user_broker.getRisk()
+    # commission = user_symbol.getCommission()
     return render(req, 'trade/new.html', locals())
 
 
@@ -66,14 +71,14 @@ def new_commit(req):
     user: User = None
     commission: float = None
     user_broker: UserBroker = None
-    us: UserSymbol = UserSymbol()
+    # us: UserSymbol = UserSymbol()
 
     if req.user.is_authenticated:
         # a new instance of user
         user = User.objects.get(username=req.user)
 
         # Relationsihp
-        us.user = user
+        # us.user = user
     else:
         # We should go to log-in page
         redirect('accounts/login')
@@ -134,3 +139,34 @@ def new_commit(req):
     messages.info(req, "success")
     return HttpResponsePermanentRedirect(url)
     return HttpResponse()
+
+
+def api_commission(req):
+    if req.method == "GET":
+        user = None
+        if req.user.is_authenticated:
+            user = User.objects.get(username=req.user)
+
+        symbol_name = req.GET.get("symbol")
+        broker_name = req.GET.get("broker")
+
+        broker: Broker = Broker.objects.get(name=broker_name)
+        symbol: Symbol = Symbol.objects.get(name=symbol_name, broker=broker)
+
+        us: UserSymbol = UserSymbol.objects.filter(user=user, symbol=symbol).first()
+        ic('we are sending', us)
+    return JsonResponse(us.getCommission(), safe=False)
+
+
+def api_risk(req):
+    if req.method == "GET":
+        user = None
+        if req.user.is_authenticated:
+            user = User.objects.get(username=req.user)
+
+        broker_name = req.GET.get("broker")
+        broker: Broker = Broker.objects.get(name=broker_name)
+
+        ub: UserBroker = UserBroker.objects.get(user=user, broker=broker)
+        ic('we are sending', ub.getRisk())
+    return JsonResponse(ub.getRisk(), safe=False)

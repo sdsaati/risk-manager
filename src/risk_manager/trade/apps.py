@@ -1,4 +1,5 @@
 from django.apps import AppConfig
+from decimal import getcontext
 
 
 class TradeConfig(AppConfig):
@@ -7,3 +8,4 @@ class TradeConfig(AppConfig):
 
     def ready(self):
         import trade.signals  # Import the signals so they're registered
+        getcontext().prec = 4
