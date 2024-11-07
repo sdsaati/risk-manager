@@ -131,9 +131,9 @@ class UserSymbol(models.Model):
 
     def risk_reward(self):
         if self.result:
-            return (self.target - self.entry) / (self.target - self.stop)
+            return (self.target - self.entry) / (self.entry - self.stop)
         else:
-            return -((self.target - self.entry) / (self.target - self.stop))
+            return -((self.target - self.entry) / (self.entry - self.stop))
 
     def stop_percent(self):
         return ((self.entry - self.stop) / self.entry) * d(100)

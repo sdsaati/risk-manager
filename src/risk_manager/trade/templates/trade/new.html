@@ -39,12 +39,16 @@
     async function compute_amount(input) {
         const entry = new Decimal(document.getElementsByName('entry')[0].value || 0)
         const stop = new Decimal(document.getElementsByName('stop')[0].value || 0)
+        const target = new Decimal(document.getElementsByName('target')[0].value || 0)
         const amountel = new Decimal(document.getElementsByName('amount')[0].value || 0)
         const symbol = document.getElementsByName('symbol')[0].value
         const broker = document.getElementsByName('broker')[0].value
-        let stop_percent = entry.minus(stop).dividedBy(entry).times(100)
-        let risk = await get_risk(broker)
-        let commission = await get_commission(symbol, broker)
+        const stop_percent = entry.minus(stop).dividedBy(entry).times(100)
+        const risk = await get_risk(broker)
+        const rr = target.minus(entry).dividedBy(entry.minus(stop)).toFixed(4)
+        document.getElementsByName('riskReward')[0].value = rr
+        const commission = await get_commission(symbol, broker)
+        document.getElementsByName('commission')[0].value = commission
         console.log("risk is ", risk)
         let amount = new Decimal(risk)
         amount = amount.dividedBy((stop_percent.plus(commission).dividedBy(100)))
