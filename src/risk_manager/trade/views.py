@@ -154,8 +154,12 @@ def api_commission(req):
         symbol: Symbol = Symbol.objects.get(name=symbol_name, broker=broker)
 
         us: UserSymbol = UserSymbol.objects.filter(user=user, symbol=symbol).first()
-        ic('we are sending', us)
-    return JsonResponse(us.getCommission(), safe=False)
+        if us is not None:
+            return JsonResponse(us.getCommission(), safe=False)
+        else:
+            return JsonResponse(broker.defaultCommission, safe=False)
+
+        ic(broker, symbol, us)
 
 
 def api_risk(req):
@@ -168,5 +172,5 @@ def api_risk(req):
         broker: Broker = Broker.objects.get(name=broker_name)
 
         ub: UserBroker = UserBroker.objects.get(user=user, broker=broker)
-        ic('we are sending', ub.getRisk())
+        ic(ub.getRisk())
     return JsonResponse(ub.getRisk(), safe=False)

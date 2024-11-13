@@ -109,7 +109,7 @@ class UserSymbol(models.Model):
         profit = self.profit()
 
         if profit > 0:  # we did profit
-            if ub.reserve <= definedReserve:  # reserve is not full
+            if ub.reserve < definedReserve:  # reserve is not full
                 ub.reserve = ub.reserve + profit
             else:  # reserve is full
                 ub.balance = ub.balance + (ub.reserve - definedReserve) + profit
@@ -190,13 +190,13 @@ class UserBroker(models.Model):
         return self.user.username + " in " + self.broker.name
 
     def getDefinedReserve(self):
-        return self.reservePercent * self.balance
+        return self.reservePercent * self.balance / d(100)
 
     def getAvailableBalance(self):
         return self.balance - self.getDefinedReserve()
 
     def getRisk(self) -> d:
-        return d(self.riskPercent) * self.getAvailableBalance()
+        return (d(self.riskPercent) / d(100)) * self.getAvailableBalance()
 
     def reserveIsEmptyUpdateBalance(self):
         """if you loss so that you don't have any reserve anymore,

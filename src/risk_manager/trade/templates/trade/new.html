@@ -56,7 +56,14 @@
         console.log('risk is: ', risk, "type of risk is :", typeof (risk), ' and commission is: ', commission)
         console.log(amount.toFixed(4))
     }
+        function handleSelectChange(selectElement) {
+            // Get the selected option
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
 
+            // Convert the text and value of the selected option to lowercase
+            selectedOption.text = selectedOption.text.toLowerCase();
+            selectedOption.value = selectedOption.value.toLowerCase();
+        }
 
 </script>
     <div class="grid grid-rows-[1fr_1fr] grid-cols-[1fr_1fr] w-auto text-sm text-center justify-items-start">
@@ -65,7 +72,7 @@
         <span class="px-1 py-0 text-center">{% trans "Account balance for trade" %} : <span>14</span></span>
         <span class="px-1 py-0 text-center"><span>{% trans "Symbol" %} : <input name='symbol' oninput="this.value = this.value.toUpperCase();" class="bg-black/25 px-2.5 rounded" placeholder="BTC"></span></span>
         <span class="px-1 py-0 text-center"><span>{% trans "Broker" %} : 
-            <select name='broker' placeholder="mexc" oninput="this.value = this.value.toLowerCase();" class="bg-black/25 px-2.5 rounded">
+            <select name='broker' placeholder="mexc" onchange="handleSelectChange(this);" class="bg-black/25 px-2.5 rounded">
                 {% for b in broker %}
                 <option id="{{b.name}}" value="{{b.name}}">{{b.name}}</option>
                 {% endfor %}
