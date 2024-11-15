@@ -5,6 +5,7 @@
     and the by migrate command we can apply those queries
 """
 
+from icecream import ic
 import uuid
 from django.db import models
 from django.contrib.auth.models import User
@@ -95,7 +96,7 @@ class UserSymbol(models.Model):
             {separator}trade done at '{self.date}'
             {separator}-------------------------------------------------"""
 
-    def entryAmountCompute(self):
+    def entryAmountCompute(self, save=True, result=None):
         """Compute the new balance [and/or] reserve
         with the result of the last trade
         NOTE: for trade we only use available balance!!!!!
@@ -106,7 +107,7 @@ class UserSymbol(models.Model):
         ub = self.getUserBroker()
         definedReserve = ub.getDefinedReserve()
         risk = ub.getRisk()
-        profit = self.profit()
+        profit = self.profit(result)
 
         if profit > 0:  # we did profit
             if ub.reserve < definedReserve:  # reserve is not full
@@ -122,8 +123,8 @@ class UserSymbol(models.Model):
                 # definedReserve
                 ub.reserveIsEmptyUpdateBalance()
                 self.entryAmountCompute()
-
-        ub.save()
+        if save:
+            ub.save()
 
     def getUserBroker(self):
         ub = UserBroker.objects.get(broker=self.symbol.broker, user=self.user)
@@ -149,10 +150,14 @@ class UserSymbol(models.Model):
         ub = self.getUserBroker()
         return ub.getRisk() / ((self.stop_percent() + self.getCommission()) / d(100))
 
-    def profit(self):
+    def profit(self, result=None):
         ub = self.getUserBroker()
         getcontext().prec = 4
-        if self.result:
+        if result is not None:
+            res = result
+        else:
+            res = self.result
+        if res:
             return (
                 ub.getAvailableBalance()
                 * (self.stop_percent() / d(100))
@@ -196,7 +201,7 @@ class UserBroker(models.Model):
         return self.balance - self.getDefinedReserve()
 
     def getRisk(self) -> d:
-        return (d(self.riskPercent) / d(100)) * self.getAvailableBalance()
+        return d(self.riskPercent) * self.getAvailableBalance() / d(100)
 
     def reserveIsEmptyUpdateBalance(self):
         """if you loss so that you don't have any reserve anymore,

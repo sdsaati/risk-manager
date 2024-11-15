@@ -5,7 +5,7 @@ from icecream import ic
 from django.shortcuts import render  # returns a HttpResponse
 from django.shortcuts import redirect
 from django.http import HttpResponsePermanentRedirect
-from django.http import HttpResponse
+# from django.http import HttpResponse
 from django.urls import reverse  # creates urls from url names
 from django.utils.translation import gettext as _  # translation
 from trade.models import UserBroker, Broker, Symbol, UserSymbol
@@ -45,14 +45,8 @@ def new(req):
         break
     commited = _('Saved') if msg is not None else _('Not Saved Yet')
     title = _('New Trade')
-    # --------------------------------------------------------------
 
     broker = Broker.objects.all()
-    # FIXME: the 4 lines below must be an API so that client can get them
-    # user_symbol = UserSymbol.objects.get(user=req.user)
-    # user_broker = UserBroker.objects.get(user=req.user)
-    # risk = user_broker.getRisk()
-    # commission = user_symbol.getCommission()
     return render(req, 'trade/new.html', locals())
 
 
@@ -70,15 +64,10 @@ def new_commit(req):
     symbol: Symbol = None
     user: User = None
     commission: float = None
-    user_broker: UserBroker = None
-    # us: UserSymbol = UserSymbol()
 
     if req.user.is_authenticated:
         # a new instance of user
         user = User.objects.get(username=req.user)
-
-        # Relationsihp
-        # us.user = user
     else:
         # We should go to log-in page
         redirect('accounts/login')
@@ -100,7 +89,7 @@ def new_commit(req):
 
     # Relationship, and we know that already there exists a user and a symbol
     # we already created
-    us = UserSymbol.objects.create(
+    UserSymbol.objects.create(
         user=user,
         symbol=symbol,
         entry=float(p.get('entry', 0.0)),
@@ -113,15 +102,18 @@ def new_commit(req):
         timeFrame=p.get('timeframe'),
         strategy=p.get('strategy'),
     )
+    url = reverse('new_trade', kwargs={}, )
+    messages.info(req, "success")  # send a message to front-end to notify it that data is saved
+    return HttpResponsePermanentRedirect(url)
 
-    # fill the Relationship of UserBroker with broker and user
-    try:
-        user_broker = UserBroker.objects.get(
-            broker=broker,
-            user=user
-        )
-    except UserBroker.DoesNotExist:
-        user_broker = None
+    # # fill the Relationship of UserBroker with broker and user
+    # try:
+    #     user_broker = UserBroker.objects.get(
+    #         broker=broker,
+    #         user=user
+    #     )
+    # except UserBroker.DoesNotExist:
+    #     user_broker = None
 
     # TODO
     # user_broker.balance =
@@ -133,33 +125,24 @@ def new_commit(req):
     # TODO
     # us.isPositionChanged = bool(p.get(''))
 
-    # EXAMPLE
-    # trades = UserSymbol.objects.get(id='')
-    url = reverse('new_trade', kwargs={}, )
-    messages.info(req, "success")
-    return HttpResponsePermanentRedirect(url)
-    return HttpResponse()
-
 
 def api_commission(req):
     if req.method == "GET":
-        user = None
-        if req.user.is_authenticated:
-            user = User.objects.get(username=req.user)
-
         symbol_name = req.GET.get("symbol")
         broker_name = req.GET.get("broker")
 
         broker: Broker = Broker.objects.get(name=broker_name)
         symbol: Symbol = Symbol.objects.get(name=symbol_name, broker=broker)
 
-        us: UserSymbol = UserSymbol.objects.filter(user=user, symbol=symbol).first()
-        if us is not None:
-            return JsonResponse(us.getCommission(), safe=False)
+        commission = None
+        # us: UserSymbol = UserSymbol.objects.filter(user=user, symbol=symbol).first()
+        if symbol.commission != broker.defaultCommission:
+            commission = symbol.commission
         else:
-            return JsonResponse(broker.defaultCommission, safe=False)
+            commission = broker.defaultCommission
 
-        ic(broker, symbol, us)
+        ic(commission)
+        return JsonResponse(commission, safe=False)
 
 
 def api_risk(req):
