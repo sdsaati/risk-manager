@@ -5,16 +5,15 @@
     and the by migrate command we can apply those queries
 """
 
-from icecream import ic
 import uuid
-from django.db import models
-from django.contrib.auth.models import User
-
+# for setting the default floating point of Decimals
 # from copy import deepcopy
 from decimal import Decimal as d
-
-# for setting the default floating point of Decimals
 from decimal import getcontext
+
+from django.contrib.auth.models import User
+from django.db import models
+from icecream import ic
 
 
 class Broker(models.Model):
@@ -26,14 +25,14 @@ class Broker(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
-    defaultCommission = models.DecimalField(
-        max_digits=15, decimal_places=4, default=d("0.0")
-    )
+    defaultCommission = models.DecimalField(max_digits=15,
+                                            decimal_places=4,
+                                            default=d("0.0"))
 
     def __str__(self):
         getcontext().prec = 4
         return self.name + " with " + str(self.defaultCommission)
-        +" Commission"
+        + " Commission"
 
 
 class Symbol(models.Model):
@@ -49,7 +48,9 @@ class Symbol(models.Model):
 
     # if this is null, then we must use the
     # Broker.defaultCommission value for this field
-    commission = models.DecimalField(max_digits=15, decimal_places=4, default=d("0.0"))
+    commission = models.DecimalField(max_digits=15,
+                                     decimal_places=4,
+                                     default=d("0.0"))
 
     def __str__(self):
         getcontext().prec = 4
@@ -73,12 +74,23 @@ class UserSymbol(models.Model):
     amount = models.DecimalField(max_digits=15, decimal_places=4)
     target = models.DecimalField(max_digits=15, decimal_places=4)
     stop = models.DecimalField(max_digits=15, decimal_places=4)
-    riskReward = models.DecimalField(max_digits=15, decimal_places=4, default=d("1.0"))
-    picture = models.CharField(max_length=500, null=True, blank=True, default="")
+    riskReward = models.DecimalField(max_digits=15,
+                                     decimal_places=4,
+                                     default=d("1.0"))
+    picture = models.CharField(max_length=500,
+                               null=True,
+                               blank=True,
+                               default="")
     comment = models.TextField(null=True, blank=True, default="")
     isPositionChanged = models.BooleanField(default=False)
-    timeFrame = models.CharField(max_length=400, null=True, blank=True, default="")
-    strategy = models.CharField(max_length=500, null=True, blank=True, default="")
+    timeFrame = models.CharField(max_length=400,
+                                 null=True,
+                                 blank=True,
+                                 default="")
+    strategy = models.CharField(max_length=500,
+                                null=True,
+                                blank=True,
+                                default="")
 
     # Methods (Services of this model)
 
@@ -109,20 +121,27 @@ class UserSymbol(models.Model):
         risk = ub.getRisk()
         profit = self.profit(result)
 
-        if profit > 0:  # we did profit
-            if ub.reserve < definedReserve:  # reserve is not full
-                ub.reserve = ub.reserve + profit
-            else:  # reserve is full
-                ub.balance = ub.balance + (ub.reserve - definedReserve) + profit
-                ub.reserve = definedReserve  # now reset the reserve
-        else:  # we did loss
-            if ub.reserve > risk:  # still there are some reserve
-                ub.reserve = ub.reserve + profit  # we take our loss from reserve
-            else:  # there is no reserve at all
-                # need to compute again our risk, then with it compute
-                # definedReserve
-                ub.reserveIsEmptyUpdateBalance()
-                self.entryAmountCompute()
+        # proposition calculuses:
+        p: bool = (profit > 0)  # our trade was a win
+        q: bool = (ub.reserve < definedReserve)  # our reserve isn't full
+        z: bool = (ub.reserve > risk)  # we have a bit reserve for a loss
+
+        # if our reserve isn't full and we made a profit or we loss but have a bit reserve
+        if (p and q) or ((not p) and z):
+            ub.reserve = ub.reserve + profit
+
+        # if we did a profit but our reserve is full
+        if (p and (not q)):
+            ub.balance = ub.balance + (ub.reserve - definedReserve) + profit
+            ub.reserve = definedReserve  # now reset the reserve
+
+        # there is no reserve at all and we did a loss
+        if ((not p) and (not z)):
+            # need to compute again our risk, then with it compute
+            # definedReserve
+            ub.reserveIsEmptyUpdateBalance()
+            self.entryAmountCompute()
+
         if save:
             ub.save()
 
@@ -148,7 +167,8 @@ class UserSymbol(models.Model):
 
     def getAmountPerTrade(self):
         ub = self.getUserBroker()
-        return ub.getRisk() / ((self.stop_percent() + self.getCommission()) / d(100))
+        return ub.getRisk() / (
+            (self.stop_percent() + self.getCommission()) / d(100))
 
     def profit(self, result=None):
         ub = self.getUserBroker()
@@ -158,17 +178,14 @@ class UserSymbol(models.Model):
         else:
             res = self.result
         if res:
-            return (
-                ub.getAvailableBalance()
-                * (self.stop_percent() / d(100))
-                * self.risk_reward()
-            )
+            return (ub.getAvailableBalance() * (self.stop_percent() / d(100)) *
+                    self.risk_reward())
             -(ub.getAvailableBalance() * (self.getCommission() / d(100)))
         else:
-            return -(
-                (ub.getAvailableBalance() * (self.stop_percent() / d(100)))
-                - (ub.getAvailableBalance() * (self.getCommission() / d(100)))
-            )
+            return -((ub.getAvailableBalance() *
+                      (self.stop_percent() / d(100))) -
+                     (ub.getAvailableBalance() *
+                      (self.getCommission() / d(100))))
 
 
 class UserBroker(models.Model):
@@ -187,7 +204,9 @@ class UserBroker(models.Model):
     # current reserve that we can take our risk from
     reserve = models.DecimalField(max_digits=15, decimal_places=4)
     # with this we can compute definedReserve by using the balance of user
-    reservePercent = models.DecimalField(max_digits=15, decimal_places=4, default=10.0000)
+    reservePercent = models.DecimalField(max_digits=15,
+                                         decimal_places=4,
+                                         default=10.0000)
     # with this we can compute risk for each trade by using available balance for trading
     riskPercent = models.DecimalField(max_digits=15, decimal_places=4)
 

@@ -1,0 +1,30 @@
+layout {
+  cwd "/home/sdsaati/Projects/main_projects/RiskManager/risk-manager"
+  tab name="terminals" {
+    pane size=1 borderless=true {
+        plugin location="tab-bar"
+    }
+    pane split_direction="vertical" {
+      pane name="term1" {
+        command "./activate.sh"
+      }
+       pane name="term2" {
+        command "./activate.sh"
+      }
+    }
+    pane size=1 borderless=true {
+        plugin location="status-bar"
+    }
+  }
+    tab name="risk management in vim" {
+      pane size=1 borderless=true {
+        plugin location="tab-bar"
+      }
+      pane name="vim" {
+        command "./activate.sh"
+      }
+      pane size=1 borderless=true {
+        plugin location="status-bar"
+      }
+    }
+}
