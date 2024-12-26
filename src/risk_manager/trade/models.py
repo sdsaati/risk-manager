@@ -75,7 +75,6 @@ class UserBroker(models.Model):
 
     # current reserve that we can take our risk from
     reserve = models.DecimalField(max_digits=15, decimal_places=4)
-
     # with this we can compute definedReserve by using the balance of user
     reservePercent = models.DecimalField(max_digits=15,
                                          decimal_places=4,
