@@ -1,5 +1,5 @@
 from django.contrib import admin
-from trade.models import Broker, UserSymbol, User, UserBroker, Symbol
+from trade.models import Broker, Trade, User, UserBroker, Symbol
 # Register your models here.
 
 
@@ -8,9 +8,9 @@ class MyModelAdmin(admin.ModelAdmin):
     list_display = ('name', 'id')
 
 
-@admin.register(UserSymbol)
+@admin.register(Trade)
 class MyModelAdmin(admin.ModelAdmin):
-    list_display = ('user', 'result', 'amount')
+    list_display = ('ub', 'result', 'amount')
 
 
 @admin.register(UserBroker)
