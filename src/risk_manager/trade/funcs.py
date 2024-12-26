@@ -1,6 +1,5 @@
 from django.utils.translation import gettext as _  # translation
-from trade.models import UserSymbol
-
+from trade.models import Trade
 """there are some usefull functions and classes here I wrote
 
     Returns:

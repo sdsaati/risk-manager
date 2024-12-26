@@ -5,7 +5,7 @@
     and the by migrate command we can apply those queries
 """
 
-import uuid
+# import uuid
 # for setting the default floating point of Decimals
 # from copy import deepcopy
 from decimal import Decimal as d
@@ -17,13 +17,15 @@ from icecream import ic
 
 
 class Broker(models.Model):
-    """broker name and its default commision
+    """broker name and its default commission
 
     Args:
         models (_type_): _description_
     """
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # id = models.UUIDField(primary_key=True,
+    #                       default=uuid.uuid4, editable=False)
+    id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
     defaultCommission = models.DecimalField(max_digits=15,
                                             decimal_places=4,
@@ -42,7 +44,7 @@ class Symbol(models.Model):
         models (_type_): _description_
     """
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.AutoField(primary_key=True)
     broker = models.ForeignKey(Broker, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
 
@@ -57,26 +59,90 @@ class Symbol(models.Model):
         return f"{self.name}({d(self.commission)})"
 
 
-class UserSymbol(models.Model):
+class UserBroker(models.Model):
+    """account information of the user in a broker will be stored here
+
+    Args:
+        models (_type_): _description_
+    """
+
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    broker = models.ForeignKey(Broker, on_delete=models.CASCADE)
+
+    # the whole balance that a user has in a broker
+    balance = models.DecimalField(max_digits=15, decimal_places=4)
+    # current reserve that we can take our risk from
+    reserve = models.DecimalField(max_digits=15, decimal_places=4)
+    # with this we can compute definedReserve by using the balance of user
+    reservePercent = models.DecimalField(max_digits=15,
+                                         decimal_places=4,
+                                         default=10.0000)
+    # with this we can compute risk for each trade by using available balance for trading
+    riskPercent = models.DecimalField(max_digits=15, decimal_places=4)
+
+    def save(self, *args, **kwargs):
+        if not UserBroker.objects.exists():
+            # Add initial data if the table is empty
+            initial_data = {
+                'balance': d('10000.0000'),
+                'reserve': d('1000.0000'),
+                'reservePercent': d('10.0000'),
+                'riskPercent': d('5.0000')
+            }
+            UserBroker.objects.create(**initial_data)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.user.username + " in " + self.broker.name
+
+    @property
+    def defined_reserve(self):
+        return self.reservePercent * self.balance / d(100)
+
+    @property
+    def available_balance(self):
+        return self.balance - self.defined_reserve
+
+    def reserve_is_empty_update_balance(self):
+        """if you loss so that you don't have any reserve anymore,
+        here we update the balance of user, and compute the new
+        reserve, risk, and available balance, ...
+
+        Returns:
+            d: this is the new reserve that this method will return
+        """
+        self.balance = self.available_balance
+        self.reserve = self.defined_reserve
+        self.save()
+
+
+class Trade(models.Model):
     """Trade table = Third table between users and symbols
 
     Args:
         models (_type_): _description_
     """
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    id = models.AutoField(primary_key=True)
+    ub = models.ForeignKey(UserBroker, on_delete=models.CASCADE)
     symbol = models.ForeignKey(Symbol, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
     date_ended = models.DateTimeField(auto_now=True, null=True, blank=True)
-    result = models.BooleanField(null=True, blank=True, default=None)
-    entry = models.DecimalField(max_digits=15, decimal_places=4)
-    amount = models.DecimalField(max_digits=15, decimal_places=4)
-    target = models.DecimalField(max_digits=15, decimal_places=4)
     stop = models.DecimalField(max_digits=15, decimal_places=4)
-    riskReward = models.DecimalField(max_digits=15,
-                                     decimal_places=4,
-                                     default=d("1.0"))
+    entry = models.DecimalField(max_digits=15, decimal_places=4)
+    target = models.DecimalField(max_digits=15, decimal_places=4)
+    # This will be a computational property
+    #    riskReward = models.DecimalField(max_digits=15,
+    #                                     decimal_places=4,
+    #                                     default=d("1.0"))
+    result = models.BooleanField(null=True, blank=True, default=None)
+    result_amount = models.DecimalField(null=True,
+                                        blank=True,
+                                        max_digits=15,
+                                        decimal_places=4,
+                                        default=None)
+    amount = models.DecimalField(max_digits=15, decimal_places=4)
     picture = models.CharField(max_length=500,
                                null=True,
                                blank=True,
@@ -95,20 +161,9 @@ class UserSymbol(models.Model):
     # Methods (Services of this model)
 
     def __str__(self):
-        ub = self.getUserBroker()
-        separator = "\n"
-        return f"""{separator}-------------------------------------------------
-            {separator}username is '{self.user.username}' and boroker
-            is '{self.symbol.broker.name}' on symbol '{self.symbol.name}'
-            with entry of '{self.entry}' and stop of '{self.stop}' and target
-            is '{self.target}', now RR is computed as '{self.risk_reward()}'.
-            {separator}we did '{self.profit()}' profit/loss{separator}
-            current reserve is '{ub.reserve}' and available
-            balance is '{ub.getAvailableBalance()}' and balance is '{ub.balance}'
-            {separator}trade done at '{self.date}'
-            {separator}-------------------------------------------------"""
+        return ic(self.__dict__).__str__()
 
-    def entryAmountCompute(self, save=True, result=None):
+    def update_reserve_and_balance(self, save=True, result=None):
         """Compute the new balance [and/or] reserve
         with the result of the last trade
         NOTE: for trade we only use available balance!!!!!
@@ -116,120 +171,82 @@ class UserSymbol(models.Model):
         """
 
         getcontext().prec = 4
-        ub = self.getUserBroker()
-        definedReserve = ub.getDefinedReserve()
-        risk = ub.getRisk()
+        definedReserve = self.ub.defined_reserve
+        risk = self.risk
         profit = self.profit(result)
 
         # proposition calculuses:
         p: bool = (profit > 0)  # our trade was a win
-        q: bool = (ub.reserve < definedReserve)  # our reserve isn't full
-        z: bool = (ub.reserve > risk)  # we have a bit reserve for a loss
+        q: bool = (self.ub.reserve < definedReserve)  # our reserve isn't full
+        z: bool = (self.ub.reserve > risk)  # we have a bit reserve for a loss
 
         # if our reserve isn't full and we made a profit or we loss but have a bit reserve
         if (p and q) or ((not p) and z):
-            ub.reserve = ub.reserve + profit
+            self.ub.reserve = self.ub.reserve + profit
 
         # if we did a profit but our reserve is full
         if (p and (not q)):
-            ub.balance = ub.balance + (ub.reserve - definedReserve) + profit
-            ub.reserve = definedReserve  # now reset the reserve
+            self.ub.balance = self.ub.balance + (self.ub.reserve -
+                                                 definedReserve) + profit
+            self.ub.reserve = definedReserve  # now reset the reserve
 
         # there is no reserve at all and we did a loss
         if ((not p) and (not z)):
             # need to compute again our risk, then with it compute
             # definedReserve
-            ub.reserveIsEmptyUpdateBalance()
-            self.entryAmountCompute()
+            self.ub.reserve_is_empty_update_balance()
+            self.update_reserve_and_balance()
 
         if save:
-            ub.save()
+            pass
+            # FIXME: which one is correct?
+            # or does we even need this?
+            # self.ub.save()
+            # self.save()
 
-    def getUserBroker(self):
-        ub = UserBroker.objects.get(broker=self.symbol.broker, user=self.user)
-        return ub
-
-    def risk_reward(self):
+    @property
+    def risk_reward(self) -> d:
         if self.result:
             return (self.target - self.entry) / (self.entry - self.stop)
         else:
             return -((self.target - self.entry) / (self.entry - self.stop))
 
-    def stop_percent(self):
+    @property
+    def stop_percent(self) -> d:
         return ((self.entry - self.stop) / self.entry) * d(100)
 
-    def getCommission(self) -> d:
-        ub = self.getUserBroker()
+    @property
+    def commission(self) -> d:
         if self.symbol.commission is None:
-            return ub.broker.defaultCommission
+            return self.ub.broker.defaultCommission
         else:
             return self.symbol.commission
 
-    def getAmountPerTrade(self):
-        ub = self.getUserBroker()
-        return ub.getRisk() / (
-            (self.stop_percent() + self.getCommission()) / d(100))
+    @property
+    def amount_per_trade(self) -> d:
+        return self.risk / ((self.stop_percent + self.commission) / d(100))
+
+    @property
+    def risk(self) -> d:
+        return d(self.ub.riskPercent) * self.ub.available_balance / d(100)
 
     def profit(self, result=None):
-        ub = self.getUserBroker()
         getcontext().prec = 4
         if result is not None:
             res = result
         else:
             res = self.result
         if res:
-            return (ub.getAvailableBalance() * (self.stop_percent() / d(100)) *
-                    self.risk_reward())
-            -(ub.getAvailableBalance() * (self.getCommission() / d(100)))
+            return (self.ub.available_balance * (self.stop_percent / d(100)) *
+                    self.risk_reward)
+            -(self.ub.available_balance * (self.commission / d(100)))
         else:
-            return -((ub.getAvailableBalance() *
-                      (self.stop_percent() / d(100))) -
-                     (ub.getAvailableBalance() *
-                      (self.getCommission() / d(100))))
+            return -((self.ub.available_balance *
+                      (self.stop_percent / d(100))) -
+                     (self.ub.available_balance * (self.commission / d(100))))
 
+    def cascade_update_reserve_and_balances(self, modified_row_id):
+        pass
 
-class UserBroker(models.Model):
-    """account information of the user in a broker will be stored here
-
-    Args:
-        models (_type_): _description_
-    """
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    broker = models.ForeignKey(Broker, on_delete=models.CASCADE)
-
-    # the whole balance that a user has in a broker
-    balance = models.DecimalField(max_digits=15, decimal_places=4)
-    # current reserve that we can take our risk from
-    reserve = models.DecimalField(max_digits=15, decimal_places=4)
-    # with this we can compute definedReserve by using the balance of user
-    reservePercent = models.DecimalField(max_digits=15,
-                                         decimal_places=4,
-                                         default=10.0000)
-    # with this we can compute risk for each trade by using available balance for trading
-    riskPercent = models.DecimalField(max_digits=15, decimal_places=4)
-
-    def __str__(self):
-        return self.user.username + " in " + self.broker.name
-
-    def getDefinedReserve(self):
-        return self.reservePercent * self.balance / d(100)
-
-    def getAvailableBalance(self):
-        return self.balance - self.getDefinedReserve()
-
-    def getRisk(self) -> d:
-        return d(self.riskPercent) * self.getAvailableBalance() / d(100)
-
-    def reserveIsEmptyUpdateBalance(self):
-        """if you loss so that you don't have any reserve anymore,
-        here we update the balance of user, and compute the new
-        reserve, risk, and available balance, ...
-
-        Returns:
-            d: this is the new reserve that this method will return
-        """
-        self.balance = self.getAvailableBalance()
-        self.reserve = self.getDefinedReserve()
-        self.save()
+    class Meta:
+        db_table = 'trade_usersbrokersymbol'

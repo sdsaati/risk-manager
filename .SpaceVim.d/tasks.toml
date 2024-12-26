@@ -1,0 +1,3 @@
+[gpt]
+  command = 'echo "please explain tihs codes: $(cat ${file})" | tgpt | cat'
+    isBackground = false

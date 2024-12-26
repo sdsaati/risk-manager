@@ -4,11 +4,12 @@ You must write your views here, views are just some functions
 from icecream import ic
 from django.shortcuts import render  # returns a HttpResponse
 from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404
 from django.http import HttpResponsePermanentRedirect
 # from django.http import HttpResponse
 from django.urls import reverse  # creates urls from url names
 from django.utils.translation import gettext as _  # translation
-from trade.models import UserBroker, Broker, Symbol, UserSymbol
+from trade.models import UserBroker, Broker, Symbol, Trade
 import trade.funcs as funcs
 from django.contrib import messages
 from django.contrib.messages import get_messages
@@ -81,15 +82,13 @@ def new_commit(req):
     else:
         commission = float(broker.defaultCommission)
 
-    symbol, created = Symbol.objects.get_or_create(
-        name=p.get('symbol'),
-        broker=broker,
-        commission=commission
-    )
+    symbol, created = Symbol.objects.get_or_create(name=p.get('symbol'),
+                                                   broker=broker,
+                                                   commission=commission)
 
     # Relationship, and we know that already there exists a user and a symbol
     # we already created
-    UserSymbol.objects.create(
+    Trade.objects.create(
         user=user,
         symbol=symbol,
         entry=float(p.get('entry', 0.0)),
@@ -102,8 +101,13 @@ def new_commit(req):
         timeFrame=p.get('timeframe'),
         strategy=p.get('strategy'),
     )
-    url = reverse('new_trade', kwargs={}, )
-    messages.info(req, "success")  # send a message to front-end to notify it that data is saved
+    url = reverse(
+        'new_trade',
+        kwargs={},
+    )
+    messages.info(
+        req, "success"
+    )  # send a message to front-end to notify it that data is saved
     return HttpResponsePermanentRedirect(url)
 
     # # fill the Relationship of UserBroker with broker and user
@@ -132,7 +136,10 @@ def api_commission(req):
         broker_name = req.GET.get("broker")
 
         broker: Broker = Broker.objects.get(name=broker_name)
-        symbol: Symbol = Symbol.objects.get(name=symbol_name, broker=broker)
+        symbol: Symbol = get_object_or_404(Symbol,
+                                           name=symbol_name,
+                                           broker=broker)
+        # symbol: Symbol = Symbol.objects.get(name=symbol_name, broker=broker)
 
         commission = None
         # us: UserSymbol = UserSymbol.objects.filter(user=user, symbol=symbol).first()
@@ -141,7 +148,7 @@ def api_commission(req):
         else:
             commission = broker.defaultCommission
 
-        ic(commission)
+        # ic(commission)
         return JsonResponse(commission, safe=False)
 
 
@@ -152,8 +159,18 @@ def api_risk(req):
             user = User.objects.get(username=req.user)
 
         broker_name = req.GET.get("broker")
+        sym_name = req.GET.get("symbol")
         broker: Broker = Broker.objects.get(name=broker_name)
-
         ub: UserBroker = UserBroker.objects.get(user=user, broker=broker)
-        ic(ub.getRisk())
-    return JsonResponse(ub.getRisk(), safe=False)
+        sym: Symbol = Symbol.objects.filter(broker=broker,
+                                            name=sym_name).first()
+        if sym:
+            trade: Trade = Trade.objects.filter(
+                ub=ub, symbol=sym).order_by('-id').first()
+        if trade:
+            ic(trade.risk)
+            return JsonResponse(trade.risk, safe=False)
+        else:
+            return JsonResponse({"message": "No trades found"},
+                                status=404,
+                                safe=False)

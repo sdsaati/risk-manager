@@ -1,8 +1,8 @@
 # from django.db.models.signals import post_save  # the actual signal
 from django.db.models.signals import pre_save  # the actual signal
 from django.dispatch import receiver  # decorator for connecting signal
-from trade.models import UserSymbol
-
+from trade.models import Trade
+from icecream import ic
 
 # @receiver(post_save, sender=UserSymbol)
 # def on_result_changed(sender, instance: UserSymbol, created, **kwargs):
@@ -21,8 +21,8 @@ from trade.models import UserSymbol
 #         print(instance)
 
 
-@receiver(pre_save, sender=UserSymbol)
-def check_balance_is_changed(sender: UserSymbol, instance: UserSymbol, **kwargs):
+@receiver(pre_save, sender=Trade)
+def check_balance_is_changed(sender: Trade, instance: Trade, **kwargs):
     """this event will check if result of a trade is changed or not.
     if it's changed, we must update other fields like reserve, definedReserve
     and risk, riskReward, AvailableBalance
@@ -31,14 +31,14 @@ def check_balance_is_changed(sender: UserSymbol, instance: UserSymbol, **kwargs)
         sender (_type_): is the model class (our table)
         instance (_type_): is an object of class (our row=record)
     """
-    if instance.pk:  # ensure if the balance is updated (it's not new)
+    if instance.pk:  # ensure if the balance is updated (it's not new pk=None)
         # Fetch the original instance from the database
         # original: UserSymbol = sender.objects.get(pk=instance.pk)
         # if original.result != instance.result:
 
         # Check if a specific field has changed
         if instance.result is not None:
-            print(instance)
-            instance.riskReward = instance.risk_reward()
-            instance.entryAmountCompute()
-            print(instance)
+            ic(instance)
+            # instance.riskReward = instance.risk_reward()
+            instance.update_reserve_and_balance()
+            ic(instance)

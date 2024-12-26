@@ -7,8 +7,8 @@
 <script>
     // window.risk = {{ risk }} 
 
-    async function get_risk(broker){
-        const url = "{% url 'api_risk' %}?broker="+broker
+    async function get_risk(broker, symbol){
+        const url = "{% url 'api_risk' %}?broker="+broker+"&symbol="+symbol
         return await fetch(url,{
         method: 'GET',
         headers: {
@@ -46,7 +46,7 @@
         const symbol = document.getElementsByName('symbol')[0].value
         const broker = document.getElementsByName('broker')[0].value
         const stop_percent = entry.minus(stop).dividedBy(entry).times(new Decimal(100))
-        const risk = await get_risk(broker)
+        const risk = await get_risk(broker, symbol)
         const rr = target.minus(entry).dividedBy(entry.minus(stop)).toFixed(4)
         document.getElementsByName('riskReward')[0].value = rr
         const commission = await get_commission(symbol, broker)
