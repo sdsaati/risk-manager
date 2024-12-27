@@ -68,30 +68,28 @@ class UserBroker(models.Model):
 
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    broker = models.ForeignKey(Broker, on_delete=models.CASCADE)
+    broker = models.ForeignKey(Broker, on_delete=models.SET_NULL, null=True)
 
     # the whole balance that a user has in a broker
-    balance = models.DecimalField(max_digits=15, decimal_places=4)
+    balance = models.DecimalField(max_digits=15,
+                                  decimal_places=4,
+                                  default=d(2000.0000))
 
     # current reserve that we can take our risk from
-    reserve = models.DecimalField(max_digits=15, decimal_places=4)
+    reserve = models.DecimalField(max_digits=15,
+                                  decimal_places=4,
+                                  default=d(1800.0000))
     # with this we can compute definedReserve by using the balance of user
     reservePercent = models.DecimalField(max_digits=15,
                                          decimal_places=4,
                                          default=10.0000)
-    # with this we can compute risk for each trade by using available balance for trading
-    riskPercent = models.DecimalField(max_digits=15, decimal_places=4)
+    # with this we can compute risk for each trade
+    # by using available balance for trading
+    riskPercent = models.DecimalField(max_digits=15,
+                                      decimal_places=4,
+                                      default=1.0000)
 
     def save(self, *args, **kwargs):
-        if not UserBroker.objects.exists():
-            # Add initial data if the table is empty
-            initial_data = {
-                'balance': d('2000.0000'),
-                'reserve': d('200.0000'),
-                'reservePercent': d('10.0000'),
-                'riskPercent': d('1.0000')
-            }
-            UserBroker.objects.create(**initial_data)
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -99,7 +97,7 @@ class UserBroker(models.Model):
 
     @property
     def defined_reserve(self):
-        return self.reservePercent * self.balance / d(100)
+        return (self.reservePercent * self.balance) / d(100)
 
     @property
     def available_balance(self):
@@ -115,7 +113,7 @@ class UserBroker(models.Model):
         """
         self.balance = self.available_balance
         self.reserve = self.defined_reserve
-        self.save()
+        # self.save()
 
 
 class Trade(models.Model):
@@ -160,9 +158,14 @@ class Trade(models.Model):
                                 default="")
 
     # Methods (Services of this model)
+    def balance(self):
+        return self.ub.balance
+
+    def reserve(self):
+        return self.ub.reserve
 
     def __str__(self):
-        return ic(self.__dict__).__str__()
+        return self.__dict__.__str__()
 
     def update_reserve_and_balance(self, save=True, result=None):
         """Compute the new balance [and/or] reserve
@@ -172,37 +175,45 @@ class Trade(models.Model):
         """
 
         getcontext().prec = 4
-        definedReserve = self.ub.defined_reserve
-        risk = self.risk
-        profit = self.profit(result)
 
         # proposition calculuses:
-        p: bool = (profit > 0)  # our trade was a win
-        q: bool = (self.ub.reserve < definedReserve)  # our reserve isn't full
-        z: bool = (self.ub.reserve > risk)  # we have a bit reserve for a loss
+        p: bool = (self.profit(result) > 0)  # our trade was a win
+        q: bool = (self.ub.reserve
+                   < self.ub.defined_reserve)  # our reserve isn't full
+        z: bool = (self.ub.reserve
+                   > self.risk)  # we have a bit reserve for a loss
 
         # if our reserve isn't full and we made a profit or we loss but have a bit reserve
         if (p and q) or ((not p) and z):
-            self.ub.reserve = self.ub.reserve + profit
+            self.ub.reserve = self.ub.reserve + self.profit(result)
+            self.ub.balance = self.ub.balance
+            ic("we are in first cond", p, q, z, self.ub.reserve,
+               self.ub.defined_reserve)
 
         # if we did a profit but our reserve is full
         if (p and (not q)):
-            self.ub.balance = self.ub.balance + (self.ub.reserve -
-                                                 definedReserve) + profit
-            self.ub.reserve = definedReserve  # now reset the reserve
+            self.ub.balance = self.ub.balance + (
+                self.ub.reserve -
+                self.ub.defined_reserve) + self.profit(result)
+            self.ub.reserve = self.ub.defined_reserve  # now reset the reserve
+            ic("we are in second cond", p, q, self.ub.reserve,
+               self.ub.defined_reserve)
 
         # there is no reserve at all and we did a loss
         if ((not p) and (not z)):
             # need to compute again our risk, then with it compute
             # definedReserve
             self.ub.reserve_is_empty_update_balance()
-            self.update_reserve_and_balance()
+            self.update_reserve_and_balance(result=result)
+            ic("we are in third cond", p, z, self.ub.reserve,
+               self.ub.defined_reserve)
 
         if save:
             pass
             # FIXME: which one is correct?
             # or does we even need this?
-            # self.ub.save()
+            ic(self.ub.balance)
+            self.ub.save()
             # self.save()
 
     @property

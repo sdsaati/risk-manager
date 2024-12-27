@@ -1,8 +1,8 @@
 # from django.db.models.signals import post_save  # the actual signal
 from django.db.models.signals import pre_save  # the actual signal
 from django.dispatch import receiver  # decorator for connecting signal
-from trade.models import Trade
 from icecream import ic
+from trade.models import Trade
 
 # @receiver(post_save, sender=UserSymbol)
 # def on_result_changed(sender, instance: UserSymbol, created, **kwargs):
@@ -31,14 +31,25 @@ def check_balance_is_changed(sender: Trade, instance: Trade, **kwargs):
         sender (_type_): is the model class (our table)
         instance (_type_): is an object of class (our row=record)
     """
-    if instance.pk:  # ensure if the balance is updated (it's not new pk=None)
-        # Fetch the original instance from the database
-        # original: UserSymbol = sender.objects.get(pk=instance.pk)
-        # if original.result != instance.result:
+    if instance.pk:  # Ensure if record is edited(It's not new pk=None)
+        ic("we are editing the trade: ", instance.pk)
 
-        # Check if a specific field has changed
-        if instance.result is not None:
-            ic(instance)
-            # instance.riskReward = instance.risk_reward()
-            instance.update_reserve_and_balance()
-            ic(instance)
+        # NOTE:
+        # To Fetch the record before the edit:
+        # original = sender.objects.get(pk=instance.pk)
+        # if original.result != instance.result:
+        before_edit_stop = sender.objects.get(pk=instance.pk)
+        before_edit_entry = sender.objects.get(pk=instance.pk)
+        before_edit_target = sender.objects.get(pk=instance.pk)
+        before_edit_amount = sender.objects.get(pk=instance.pk)
+        before_edit_result = sender.objects.get(pk=instance.pk)
+
+        if (before_edit_stop
+                != instance.stop) or (before_edit_entry != instance.entry) or (
+                    before_edit_target != instance.target) or (
+                        before_edit_amount
+                        != instance.amount) or (before_edit_result
+                                                != instance.result):
+            if instance.result is not None:  # if new result is Yes or No
+                instance.update_reserve_and_balance(instance.result)
+                ic(instance.ub.balance)

@@ -168,7 +168,7 @@ def api_risk(req):
             trade: Trade = Trade.objects.filter(
                 ub=ub, symbol=sym).order_by('-id').first()
         if trade:
-            ic(trade.risk)
+            # ic(trade.risk)
             return JsonResponse(trade.risk, safe=False)
         else:
             return JsonResponse({"message": "No trades found"},

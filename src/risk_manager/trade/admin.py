@@ -10,12 +10,12 @@ class MyModelAdmin(admin.ModelAdmin):
 
 @admin.register(Trade)
 class MyModelAdmin(admin.ModelAdmin):
-    list_display = ('ub', 'result', 'amount')
+    list_display = ('ub', 'result', 'amount', 'balance', 'reserve')
 
 
 @admin.register(UserBroker)
 class MyModelAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('balance', 'reserve')
 
 
 @admin.register(Symbol)
