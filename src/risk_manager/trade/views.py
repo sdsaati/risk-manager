@@ -86,16 +86,26 @@ def new_commit(req):
                                                    broker=broker,
                                                    commission=commission)
 
+    # First we need to get the last user broker to set the balance and reserve
+    # of them
+    ub_last = UserBroker.objects.last()
+    # Then we need to create the new row for user broker for our new trade
+    # (WHY?) because we can have a history and can correct our mistakes laters
+    ub = UserBroker.objects.create(user=user,
+                                   broker=broker,
+                                   balance=ub_last.balance,
+                                   reserve=ub_last.reserve,
+                                   reservePercent=ub_last.reservePercent,
+                                   riskPercent=ub_last.riskPercent)
     # Relationship, and we know that already there exists a user and a symbol
     # we already created
     Trade.objects.create(
-        user=user,
+        ub=ub,
         symbol=symbol,
         entry=float(p.get('entry', 0.0)),
         stop=float(p.get('stop', 0.0)),
         target=float(p.get('target', 0.0)),
         amount=float(p.get('amount', 0.0)),
-        riskReward=float(p.get('riskReward', 2)),
         picture=p.get('picture'),
         comment=p.get('comment'),
         timeFrame=p.get('timeframe'),
