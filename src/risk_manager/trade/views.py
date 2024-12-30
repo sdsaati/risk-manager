@@ -171,7 +171,8 @@ def api_risk(req):
         broker_name = req.GET.get("broker")
         sym_name = req.GET.get("symbol")
         broker: Broker = Broker.objects.get(name=broker_name)
-        ub: UserBroker = UserBroker.objects.get(user=user, broker=broker)
+        ub: UserBroker = UserBroker.objects.filter(user=user,
+                                                   broker=broker).last()
         sym: Symbol = Symbol.objects.filter(broker=broker,
                                             name=sym_name).first()
         if sym:

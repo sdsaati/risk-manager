@@ -158,6 +158,9 @@ class Trade(models.Model):
                                 default="")
 
     # Methods (Services of this model)
+    def ub_id(self):
+        return self.ub.id
+
     def balance(self):
         return self.ub.balance
 

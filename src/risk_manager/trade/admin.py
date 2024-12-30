@@ -10,7 +10,8 @@ class MyModelAdmin(admin.ModelAdmin):
 
 @admin.register(Trade)
 class MyModelAdmin(admin.ModelAdmin):
-    list_display = ('id', 'ub', 'result', 'amount', 'balance', 'reserve')
+    list_display = ('id', 'ub', 'ub_id', 'result', 'amount', 'balance',
+                    'reserve')
 
 
 @admin.register(UserBroker)
