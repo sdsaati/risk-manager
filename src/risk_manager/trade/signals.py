@@ -1,8 +1,13 @@
 # from django.db.models.signals import post_save  # the actual signal
+import logging
+
 from django.db.models.signals import pre_save  # the actual signal
 from django.dispatch import receiver  # decorator for connecting signal
 from icecream import ic
 from trade.models import Trade
+from trade.trade_states import *
+
+logger = logging.getLogger("django")
 
 # @receiver(post_save, sender=UserSymbol)
 # def on_result_changed(sender, instance: UserSymbol, created, **kwargs):
@@ -32,24 +37,42 @@ def check_balance_is_changed(sender: Trade, instance: Trade, **kwargs):
         instance (_type_): is an object of class (our row=record)
     """
     if instance.pk:  # Ensure if record is edited(It's not new pk=None)
-        ic("we are editing the trade: ", instance.pk)
+        # ic("we are editing the trade: ", instance.pk)
 
         # NOTE:
         # To Fetch the record before the edit:
         # original = sender.objects.get(pk=instance.pk)
         # if original.result != instance.result:
-        before_edit_stop = sender.objects.get(pk=instance.pk)
-        before_edit_entry = sender.objects.get(pk=instance.pk)
-        before_edit_target = sender.objects.get(pk=instance.pk)
-        before_edit_amount = sender.objects.get(pk=instance.pk)
-        before_edit_result = sender.objects.get(pk=instance.pk)
+        try:
+            before_edit: Trade | None = sender.objects.get(pk=instance.pk)
+        except sender.DoesNotExist:
+            before_edit = None
 
-        if (before_edit_stop
-                != instance.stop) or (before_edit_entry != instance.entry) or (
-                    before_edit_target != instance.target) or (
-                        before_edit_amount
-                        != instance.amount) or (before_edit_result
-                                                != instance.result):
-            if instance.result is not None:  # if new result is Yes or No
+        # (1) Check to see if any of these fields are edited in admin page
+        if before_edit is not None and (
+            (before_edit.stop != instance.stop)
+            or (before_edit.entry != instance.entry)
+            or (before_edit.target != instance.target)
+            or (before_edit.amount != instance.amount)
+            or (before_edit.result != instance.result)
+            or (before_edit.ub.reserve != instance.reserve)
+            or (before_edit.balance != instance.balance)
+        ):
+            ic("BEFORE:", instance.ub.balance, instance.ub.reserve, instance.amount)
+            tsm = TradeStateManager(instance, before_edit, sender)
+            ic("AFTER:", instance.ub.balance, instance.ub.reserve, instance.amount)
+            if instance.result is not None:  # (2) if new result is available
+                if before_edit.result is not None:  # (5)
+                    # (6)
+                    pass
+                else:
+                    # (7)
+                    pass
+                if instance.result == True:  # (3) if new result is Yes or No
+                    pass
+                else:
+                    pass
                 instance.update_reserve_and_balance(instance.result)
-                ic(instance.ub.balance)
+                # ic(instance.ub.balance)
+            else:  # (4) result is None
+                instance.amount = instance.amount_per_trade

@@ -1,11 +1,13 @@
 """
 You must write your views here, views are just some functions
 """
+
 from icecream import ic
 from django.shortcuts import render  # returns a HttpResponse
 from django.shortcuts import redirect
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponsePermanentRedirect
+
 # from django.http import HttpResponse
 from django.urls import reverse  # creates urls from url names
 from django.utils.translation import gettext as _  # translation
@@ -15,9 +17,13 @@ from django.contrib import messages
 from django.contrib.messages import get_messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+
 # from django.contrib.auth import login
 # from django.contrib.auth import authenticate
 from django.http import JsonResponse
+import logging
+
+logger = logging.getLogger("django")
 
 
 def index(req):
@@ -29,31 +35,32 @@ def index(req):
     Returns:
         _type_: _description_
     """
-    return render(req, 'trade/index.html', locals())
+    return render(req, "trade/index.html", locals())
 
 
 @login_required()
 def new(req):
-    """ it's the view that shows the new trade form.
+    """it's the view that shows the new trade form.
 
     Args:
         req (_type_): _description_
     """
     # if we came from new_commit() view
+    # logger.warn("[trade.new: View]")
     msg = None
     for m in get_messages(req):
         msg = m
         break
-    commited = _('Saved') if msg is not None else _('Not Saved Yet')
-    title = _('New Trade')
+    commited = _("Saved") if msg is not None else _("Not Saved Yet")
+    title = _("New Trade")
 
     broker = Broker.objects.all()
-    return render(req, 'trade/new.html', locals())
+    return render(req, "trade/new.html", locals())
 
 
 @login_required()
 def new_commit(req):
-    """ we come here from 'new' view. we save the data into db here and the
+    """we come here from 'new' view. we save the data into db here and the
     will go back to 'new' view.
 
     Args:
@@ -71,48 +78,50 @@ def new_commit(req):
         user = User.objects.get(username=req.user)
     else:
         # We should go to log-in page
-        redirect('accounts/login')
+        redirect("accounts/login")
 
     # find the broker and put it inside a new instance
-    broker, created = Broker.objects.get_or_create(name=p.get('broker'))
+    broker, created = Broker.objects.get_or_create(name=p.get("broker"))
 
     # determine the commission
-    if p.get('commission') is not None and p.get('commission') != '':
-        commission = float(p.get('commission'))
+    if p.get("commission") is not None and p.get("commission") != "":
+        commission = float(p.get("commission"))
     else:
         commission = float(broker.defaultCommission)
 
-    symbol, created = Symbol.objects.get_or_create(name=p.get('symbol'),
-                                                   broker=broker,
-                                                   commission=commission)
+    symbol, created = Symbol.objects.get_or_create(
+        name=p.get("symbol"), broker=broker, commission=commission
+    )
 
     # First we need to get the last user broker to set the balance and reserve
     # of them
     ub_last = UserBroker.objects.last()
     # Then we need to create the new row for user broker for our new trade
     # (WHY?) because we can have a history and can correct our mistakes laters
-    ub = UserBroker.objects.create(user=user,
-                                   broker=broker,
-                                   balance=ub_last.balance,
-                                   reserve=ub_last.reserve,
-                                   reservePercent=ub_last.reservePercent,
-                                   riskPercent=ub_last.riskPercent)
+    ub = UserBroker.objects.create(
+        user=user,
+        broker=broker,
+        balance=ub_last.balance,
+        reserve=ub_last.reserve,
+        reservePercent=ub_last.reservePercent,
+        riskPercent=ub_last.riskPercent,
+    )
     # Relationship, and we know that already there exists a user and a symbol
     # we already created
     Trade.objects.create(
         ub=ub,
         symbol=symbol,
-        entry=float(p.get('entry', 0.0)),
-        stop=float(p.get('stop', 0.0)),
-        target=float(p.get('target', 0.0)),
-        amount=float(p.get('amount', 0.0)),
-        picture=p.get('picture'),
-        comment=p.get('comment'),
-        timeFrame=p.get('timeframe'),
-        strategy=p.get('strategy'),
+        entry=float(p.get("entry", 0.0)),
+        stop=float(p.get("stop", 0.0)),
+        target=float(p.get("target", 0.0)),
+        amount=float(p.get("amount", 0.0)),
+        picture=p.get("picture"),
+        comment=p.get("comment"),
+        timeFrame=p.get("timeframe"),
+        strategy=p.get("strategy"),
     )
     url = reverse(
-        'new_trade',
+        "new_trade",
         kwargs={},
     )
     messages.info(
@@ -146,9 +155,7 @@ def api_commission(req):
         broker_name = req.GET.get("broker")
 
         broker: Broker = Broker.objects.get(name=broker_name)
-        symbol: Symbol = get_object_or_404(Symbol,
-                                           name=symbol_name,
-                                           broker=broker)
+        symbol: Symbol = get_object_or_404(Symbol, name=symbol_name, broker=broker)
         # symbol: Symbol = Symbol.objects.get(name=symbol_name, broker=broker)
 
         commission = None
@@ -171,17 +178,14 @@ def api_risk(req):
         broker_name = req.GET.get("broker")
         sym_name = req.GET.get("symbol")
         broker: Broker = Broker.objects.get(name=broker_name)
-        ub: UserBroker = UserBroker.objects.filter(user=user,
-                                                   broker=broker).last()
-        sym: Symbol = Symbol.objects.filter(broker=broker,
-                                            name=sym_name).first()
+        ub: UserBroker = UserBroker.objects.filter(user=user, broker=broker).last()
+        sym: Symbol = Symbol.objects.filter(broker=broker, name=sym_name).first()
         if sym:
-            trade: Trade = Trade.objects.filter(
-                ub=ub, symbol=sym).order_by('-id').first()
+            trade: Trade = (
+                Trade.objects.filter(ub=ub, symbol=sym).order_by("-id").first()
+            )
         if trade:
             # ic(trade.risk)
             return JsonResponse(trade.risk, safe=False)
         else:
-            return JsonResponse({"message": "No trades found"},
-                                status=404,
-                                safe=False)
+            return JsonResponse({"message": "No trades found"}, status=404, safe=False)
