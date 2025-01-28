@@ -9,10 +9,11 @@
 # for setting the default floating point of Decimals
 # from copy import deepcopy
 from typing import Any
-from decimal import Decimal as d
-from decimal import getcontext
+from django.db import transaction
 from django.contrib.auth.models import User
 from django.db import models
+from decimal import Decimal as d
+from decimal import getcontext
 from icecream import ic
 import logging
 
@@ -83,9 +84,6 @@ class UserBroker(models.Model):
     # by using available balance for trading
     riskPercent = models.DecimalField(max_digits=15, decimal_places=4, default=1.0000)
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-
     def __str__(self):
         return self.user.username + " in " + self.broker.name
 
@@ -107,7 +105,9 @@ class UserBroker(models.Model):
         """
         self.balance = self.available_balance
         self.reserve = self.defined_reserve
-        # self.save()
+        # NOTE: We don't need to save this because inside the
+        # signal, we save ub(this object) too
+        ## self.save()
 
 
 class Trade(models.Model):
@@ -118,8 +118,8 @@ class Trade(models.Model):
     """
 
     id = models.AutoField(primary_key=True)
-    ub = models.ForeignKey(UserBroker, on_delete=models.CASCADE)
-    symbol = models.ForeignKey(Symbol, on_delete=models.CASCADE)
+    ub: UserBroker = models.ForeignKey(UserBroker, on_delete=models.CASCADE)
+    symbol: Symbol = models.ForeignKey(Symbol, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
     date_ended = models.DateTimeField(auto_now=True, null=True, blank=True)
     stop = models.DecimalField(max_digits=15, decimal_places=4)
@@ -141,8 +141,10 @@ class Trade(models.Model):
     strategy = models.CharField(max_length=500, null=True, blank=True, default="")
 
     def save(self, *args, **kwargs):
-        self.ub.save()
         super().save(*args, **kwargs)
+        logger.warn(
+            f"we saved ub: {str(self.ub.id)} with this balance: {str(self.ub.balance)}"
+        )
 
     # Methods (Services of this model)
     def ub_id(self):
@@ -157,12 +159,23 @@ class Trade(models.Model):
     def __str__(self):
         return self.__dict__.__str__()
 
-    def update_reserve_and_balance(self, save=True, result: bool | None = None) -> None:
+    def update_reserve_and_balance(
+        self,
+        save=False,
+        result: bool | None = None,
+        previews_trade_balance: d | None = None,
+        previews_trade_reserve: d | None = None,
+    ) -> None:
         """Compute the new balance [and/or] reserve
         with the result of the last trade
         NOTE: for trade we only use available balance!!!!!
         NOTE: self.amount also needs to be updated for next trade
         """
+
+        if previews_trade_balance is not None:
+            self.ub.balance = previews_trade_balance
+        if previews_trade_reserve is not None:
+            self.ub.reserve = previews_trade_reserve
 
         # proposition calculuses:
         p: bool = self.profit(result) > 0  # our trade was a win
@@ -172,7 +185,7 @@ class Trade(models.Model):
         # if our reserve isn't full and we made a profit or we loss but have a bit reserve
         if (p and q) or ((not p) and z):
             self.ub.reserve = self.ub.reserve + self.profit(result)
-            self.ub.balance = self.ub.balance
+            # self.ub.balance = self.ub.balance
             ic(
                 "we are in first cond",
                 p,
@@ -199,6 +212,14 @@ class Trade(models.Model):
             self.ub.reserve_is_empty_update_balance()
             self.update_reserve_and_balance(result=result)
             ic("we are in third cond", p, z, self.ub.reserve, self.ub.defined_reserve)
+
+        if save == True:
+            with transaction.atomic():
+                self.ub.save()
+                self.ub.user.save()
+                self.ub.broker.save()
+                self.symbol.save()
+                self.symbol.broker.save()
 
     @property
     def risk_reward(self) -> d:

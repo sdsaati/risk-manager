@@ -1,6 +1,7 @@
 # from django.db.models.signals import post_save  # the actual signal
 import logging
 
+from django.db import transaction
 from django.db.models.signals import pre_save  # the actual signal
 from django.dispatch import receiver  # decorator for connecting signal
 from icecream import ic
@@ -60,19 +61,26 @@ def check_balance_is_changed(sender: Trade, instance: Trade, **kwargs):
         ):
             ic("BEFORE:", instance.ub.balance, instance.ub.reserve, instance.amount)
             tsm = TradeStateManager(instance, before_edit, sender)
-            ic("AFTER:", instance.ub.balance, instance.ub.reserve, instance.amount)
-            if instance.result is not None:  # (2) if new result is available
-                if before_edit.result is not None:  # (5)
-                    # (6)
+            with transaction.atomic():
+                instance.ub.save()
+                instance.ub.user.save()
+                instance.ub.broker.save()
+                instance.symbol.save()
+                instance.symbol.broker.save()
+                ic("AFTER:", instance.ub.balance, instance.ub.reserve, instance.amount)
+                if instance.result is not None:  # (2) if new result is available
+                    if before_edit.result is not None:  # (5)
+                        # (6)
+                        pass
+                    else:
+                        # (7)
+                        pass
+                    if instance.result == True:  # (3) if new result is Yes or No
+                        pass
+                    else:
+                        pass
+                    ####FIXME: temporary I commented this##instance.update_reserve_and_balance(instance.result)
+                    # ic(instance.ub.balance)
+                else:  # (4) result is None
+                    ####FIXME: temporary I commented this##instance.amount = instance.amount_per_trade
                     pass
-                else:
-                    # (7)
-                    pass
-                if instance.result == True:  # (3) if new result is Yes or No
-                    pass
-                else:
-                    pass
-                instance.update_reserve_and_balance(instance.result)
-                # ic(instance.ub.balance)
-            else:  # (4) result is None
-                instance.amount = instance.amount_per_trade
