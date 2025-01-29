@@ -111,7 +111,8 @@ class State(ABC):
             record.update_reserve_and_balance(
                 previews_trade_balance=b, previews_trade_reserve=r, save=True
             )
-            record.amount = copy(record.amount_per_trade)
+            # NOTE: We must not do anything with amount of trades here
+            # record.amount = copy(record.amount_per_trade)
             b = copy(record.ub.balance)
             r = copy(record.ub.reserve)
 

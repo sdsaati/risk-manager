@@ -7,9 +7,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
-    <script src="{% static 'trade/tailwind.js' %}"></script>
+    {% comment %} <script src="{% static 'trade/tailwind.js' %}"></script> {% endcomment %}
     <script src="{% static 'trade/jquery-3.7.1.min.js.js' %}"></script>
     <script src="{% static 'trade/decimal.js' %}"></script>
+    <link href="{% static 'trade/bootstrap.min.css' %}" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <script type="module">
         import Decimal from "{% static 'trade/decimal.mjs' %}";
     </script>
@@ -66,6 +67,7 @@
             return true;
         }
     </script>
+    <script src="{% static 'trade/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'trade/trade.js' %}"></script>
 </body>
 

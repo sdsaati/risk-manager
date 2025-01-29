@@ -149,6 +149,26 @@ def new_commit(req):
     # us.isPositionChanged = bool(p.get(''))
 
 
+# FIXME: the body of this function is copy pasted
+# need to change it
+def balance(req):
+    """
+    If User wanted to add +money or withraw -money from
+    his/her balance
+    """
+    # if we came from new_commit() view
+    # logger.warn("[trade.new: View]")
+    msg = None
+    for m in get_messages(req):
+        msg = m
+        break
+    commited = _("Saved") if msg is not None else _("Not Saved Yet")
+    title = _("New Trade")
+
+    # broker = Broker.objects.all()
+    return render(req, "trade/add_balance.html", locals())
+
+
 def api_commission(req):
     if req.method == "GET":
         symbol_name = req.GET.get("symbol")
