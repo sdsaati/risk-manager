@@ -1,9 +1,9 @@
 {% load static %}
 {% load i18n %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
@@ -12,63 +12,83 @@
     <script src="{% static 'trade/decimal.js' %}"></script>
     <link href="{% static 'trade/bootstrap.min.css' %}" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <script type="module">
-        import Decimal from "{% static 'trade/decimal.mjs' %}";
+      import Decimal from "{% static 'trade/decimal.mjs' %}";
     </script>
     <script>
-    /* Running */
-    $(document).ready(function(){
-    $("input").keyup(compute_amount)
-    });
+      /* Running */
+      $(document).ready(function(){
+        $("input").keyup(compute_amount)
+      });
     </script>
-</head>
+  </head>
 
-<body class="grid bg-gray-900 grid-cols-[20%_1fr_15%] gap-1 h-screen m-0 text-gray-400 grid-rows-[50px_1fr_70px_1fr_70px] grid-areas-[header_article_ads_nav_footer]">
-    <header id="pageHeader" class="bg-gray-800 p-2 col-span-3 col-span-1 row-span-1 text-right my-0">
-        <form class="m-0 h-8" action="{% url 'set_language' %}" method="post">
-            {% csrf_token %}
-            <select class="px-4 w-14 h-8 bg-slate-700/70 rounded" name="language">
-                <option value="en">{% trans "En" %}</option>
-                <option value="fa">{% trans "Fa" %}</option>
-            </select>
-            <button class="bg-slate-700/70 h-8 rounded px-1.5" type="submit">{% trans 'Change Language' %}</button>
-        </form>
-    </header>
-    <article id="mainArticle" class="bg-gray-800 p-5 col-span-1 row-span-1">{% trans 'Calculator' %}</article>
-    <nav id="mainNav" class="bg-gray-800 p-0 col-span-1 row-span-1">
-        <form id="dataform" action={% url 'new_trade_commit' %} method="post" onsubmit="return validateForm();">
+  <body class="container-fluid d-flex flex-column min-vh-100 opacity-75">
+    <header id="pageHeader" class="container-fluid mt-2">
+      <form class="row g-1 input-group" action="{% url 'set_language' %}" method="post">
         {% csrf_token %}
-        {% block trade_top_position %}{% endblock trade_top_position %}
-        {% block trade_position_content %}{% endblock trade_position_content %}
-        {% block trade_bot_position %}{% endblock trade_bot_position %}
+        <div class="col-2">
+          <select class="form-select" name="language">
+            <option value="en">{% trans "En" %}</option>
+            <option value="fa">{% trans "Fa" %}</option>
+          </select>
+        </div>
+        <div class="col-auto me-auto">
+          <button class="btn btn-primary" type="submit">{% trans 'Change Language' %}</button>
+        </div>
+        <div class="col-auto align-self-center ms-auto">Hello World</div>
+      </form>
+    </header>
+    <hr class="mb-2">
+<div class="flex-grow-1 d-flex h-100"> <!-- Added this wrapper -->
+    <div class="row w-100 mx-auto">
+      <article id="mainArticle" class="col-3 d-flex align-self-start">{% trans 'Calculator' %}</article>
+      <nav id="mainNav" class="col-6 align-self-center card">
+
+<div class="card-header text-center">
+  {{ title }}
+  </div>
+        <form id="dataform" class="card-body" action={% url 'new_trade_commit' %} method="post" onsubmit="return validateForm();">
+          {% csrf_token %}
+          {% block trade_top_position %}{% endblock trade_top_position %}
+          {% block trade_position_content %}{% endblock trade_position_content %}
         </form>
-    </nav>
-    <div id="siteAds" class="bg-gray-800 p-5 col-span-1 grow-span-1">{% trans 'Calendar' %}</div>
-    <footer id="pageFooter" class="bg-gray-800 p-5 col-span-3 col-span-1 row-span-1">{% trans 'Footer' %}</footer>
+
+  <div class="card-footer text-body-secondary">
+    
+          {% block trade_bot_position %}{% endblock trade_bot_position %}
+  </div>
+      </nav>
+      <div id="siteAds" class="col-3 d-flex align-self-start justify-content-end text-right">{% trans 'Calendar' %}</div>
+      </div>
+      <hr class="mt-2 align-self-end">
+    </div>
 
 
     {% block trade_index_content %}{% endblock trade_index_content %}
     {% block trade_new_content %}{% endblock trade_new_content %}
+    <hr class="mt-2">
+      <footer id="pageFooter" class="mt-auto">{% trans 'Footer' %}</footer>
     <script>
-        function validateForm()
-        {
-            // Get all input elements in the form
-            const inputs = document.querySelectorAll('input');
+      function validateForm()
+      {
+        // Get all input elements in the form
+        const inputs = document.querySelectorAll('input');
 
-            // Loop through each input
-            inputs.forEach(function(input) {
-                // If the input is empty, set its value to the placeholder
-                if (!input.value) {
-                    console.log(input.value)
-                    input.value = input.placeholder;
-                }
-            });
+        // Loop through each input
+        inputs.forEach(function(input) {
+          // If the input is empty, set its value to the placeholder
+          if (!input.value) {
+            console.log(input.value)
+            input.value = input.placeholder;
+          }
+        });
 
-            // Now submit the form after updating the input values
-            return true;
-        }
+        // Now submit the form after updating the input values
+        return true;
+      }
     </script>
     <script src="{% static 'trade/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'trade/trade.js' %}"></script>
-</body>
+  </body>
 
 </html>
