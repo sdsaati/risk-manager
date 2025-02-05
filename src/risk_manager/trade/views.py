@@ -2,26 +2,28 @@
 You must write your views here, views are just some functions
 """
 
-from icecream import ic
+import logging
+from decimal import Decimal as d
+
+import trade.funcs as funcs
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.contrib.messages import get_messages
+from django.core import serializers
+from django.db.models import QuerySet
+
+# from django.contrib.auth import login
+# from django.contrib.auth import authenticate
+from django.http import HttpResponsePermanentRedirect, JsonResponse
 from django.shortcuts import render  # returns a HttpResponse
-from django.shortcuts import redirect
-from django.shortcuts import get_object_or_404
-from django.http import HttpResponsePermanentRedirect
+from django.shortcuts import get_object_or_404, redirect
 
 # from django.http import HttpResponse
 from django.urls import reverse  # creates urls from url names
 from django.utils.translation import gettext as _  # translation
-from trade.models import UserBroker, Broker, Symbol, Trade
-import trade.funcs as funcs
-from django.contrib import messages
-from django.contrib.messages import get_messages
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-
-# from django.contrib.auth import login
-# from django.contrib.auth import authenticate
-from django.http import JsonResponse
-import logging
+from icecream import ic
+from trade.models import Broker, Symbol, Trade, UserBroker
 
 logger = logging.getLogger("django")
 
@@ -47,6 +49,7 @@ def new(req):
     """
     # if we came from new_commit() view
     # logger.warn("[trade.new: View]")
+    viewname = "new"
     msg = None
     for m in get_messages(req):
         msg = m
@@ -66,6 +69,7 @@ def new_commit(req):
     Args:
         req (_type_): _description_
     """
+    viewname = "new"
     p = funcs.Post(req)  # validate and get the posted data
     # Let's get our models and create a new instance
     broker: Broker = None
@@ -149,24 +153,79 @@ def new_commit(req):
     # us.isPositionChanged = bool(p.get(''))
 
 
-# FIXME: the body of this function is copy pasted
-# need to change it
+@login_required()
 def balance(req):
     """
     If User wanted to add +money or withraw -money from
     his/her balance
     """
+    viewname = "balance"
     # if we came from new_commit() view
     # logger.warn("[trade.new: View]")
     msg = None
     for m in get_messages(req):
         msg = m
         break
-    commited = _("Saved") if msg is not None else _("Not Saved Yet")
-    title = _("New Trade")
+    title = _("Add/Remove Balance")
+    user: User = None
+    if req.user.is_authenticated:
+        user = User.objects.get(username=req.user)
 
-    # broker = Broker.objects.all()
+    # NOTE: Use below codes if you want only add/remove balance to the brokers you already traded:
+    ubs: QuerySet[UserBroker] = UserBroker.objects.select_related("broker").filter(
+        user=user
+    )
+    # q = ubs.query # this will show the actuall SQL Query as a string
+    # data_json = serializers.serialize("json", ubs)
+    brokers_of_user: dict = {}
+    list_of_brokers_of_user: list = []
+    for ub in ubs:
+        brokers_of_user[ub.broker.name] = ub
+    mylist = list(brokers_of_user.values())
+    for ub in mylist:
+        list_of_brokers_of_user.append(
+            {"name": ub.broker.name, "balance": ub.balance, "reserve": ub.reserve}
+        )
+
+    brokers = Broker.objects.all()
     return render(req, "trade/add_balance.html", locals())
+
+
+@login_required()
+def balance_commit(req):
+    p = funcs.Post(req)  # validate and get the posted data
+    if req.user.is_authenticated:
+        user: User = User.objects.get(username=req.user)  # type: ignore
+    broker = p.get("broker")
+    balance: d = d(p.get("balance"))  # type: ignore
+    broker_object = Broker.objects.get(name=broker)
+
+    try:
+        last_user_balance_in_this_broker = d(
+            UserBroker.objects.filter(user=user, broker=broker_object).last().balance
+        )
+        if last_user_balance_in_this_broker + balance >= d(0):
+            UserBroker.objects.create(
+                broker=broker_object,
+                user=user,
+                balance=last_user_balance_in_this_broker + balance,
+            )
+            messages.info(req, "success")
+    except:
+        if balance >= d(0):
+            UserBroker.objects.create(
+                broker=broker_object,
+                user=user,
+                balance=balance,
+            )
+            messages.info(req, "success")
+
+    return HttpResponsePermanentRedirect(
+        reverse(
+            "addremove_balance",
+            kwargs={},
+        )
+    )
 
 
 def api_commission(req):

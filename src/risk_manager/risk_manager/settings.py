@@ -59,7 +59,7 @@ LOGGING = {
     },
 }
 
-ALLOWED_HOSTS = ["0.0.0.0", "192.168.254.7", "127.0.0.1", "localhost"]
+ALLOWED_HOSTS = ["0.0.0.0", "192.168.254.8", "127.0.0.1", "localhost"]
 INTERNAL_IPS = [
     # ...
     "0.0.0.0",

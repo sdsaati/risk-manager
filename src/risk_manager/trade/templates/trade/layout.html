@@ -14,12 +14,14 @@
     <script type="module">
       import Decimal from "{% static 'trade/decimal.mjs' %}";
     </script>
-    <script>
-      /* Running */
-      $(document).ready(function(){
-        $("input").keyup(compute_amount)
-      });
-    </script>
+    {% if viewname == "new" %}
+      <script>
+        /* Running */
+        $(document).ready(function(){
+          $("input").keyup(compute_amount)
+        });
+      </script>
+    {% endif %}
   </head>
 
   <body class="container-fluid d-flex flex-column min-vh-100 opacity-75">
@@ -39,26 +41,23 @@
       </form>
     </header>
     <hr class="mb-2">
-<div class="flex-grow-1 d-flex h-100"> <!-- Added this wrapper -->
-    <div class="row w-100 mx-auto">
-      <article id="mainArticle" class="col-3 d-flex align-self-start">{% trans 'Calculator' %}</article>
-      <nav id="mainNav" class="col-6 align-self-center card">
+    <div class="flex-grow-1 d-flex h-100"> <!-- Added this wrapper -->
+      <div class="row w-100 mx-auto">
+        <article id="mainArticle" class="col-3 d-flex align-self-start">{% trans 'Calculator' %}</article>
+        <nav id="mainNav" class="col-6 align-self-center card">
 
-<div class="card-header text-center">
-  {{ title }}
-  </div>
-        <form id="dataform" class="card-body" action={% url 'new_trade_commit' %} method="post" onsubmit="return validateForm();">
-          {% csrf_token %}
+          <div class="card-header text-center">
+            {{ title }}
+          </div>
           {% block trade_top_position %}{% endblock trade_top_position %}
           {% block trade_position_content %}{% endblock trade_position_content %}
-        </form>
 
-  <div class="card-footer text-body-secondary">
-    
-          {% block trade_bot_position %}{% endblock trade_bot_position %}
-  </div>
-      </nav>
-      <div id="siteAds" class="col-3 d-flex align-self-start justify-content-end text-right">{% trans 'Calendar' %}</div>
+          <div class="card-footer text-body-secondary">
+
+            {% block trade_bot_position %}{% endblock trade_bot_position %}
+          </div>
+        </nav>
+        <div id="siteAds" class="col-3 d-flex align-self-start justify-content-end text-right">{% trans 'Calendar' %}</div>
       </div>
       <hr class="mt-2 align-self-end">
     </div>
@@ -67,7 +66,7 @@
     {% block trade_index_content %}{% endblock trade_index_content %}
     {% block trade_new_content %}{% endblock trade_new_content %}
     <hr class="mt-2">
-      <footer id="pageFooter" class="mt-auto">{% trans 'Footer' %}</footer>
+    <footer id="pageFooter" class="mt-auto">{% trans 'Footer' %}</footer>
     <script>
       function validateForm()
       {
@@ -86,6 +85,25 @@
         // Now submit the form after updating the input values
         return true;
       }
+      /* BELOW IS BOOTSTRAP VALIDATION */
+      (() => {
+        'use strict'
+
+        // Fetch all the forms we want to apply custom Bootstrap validation styles to
+        const forms = document.querySelectorAll('.needs-validation')
+
+        // Loop over them and prevent submission
+        Array.from(forms).forEach(form => {
+          form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+              event.preventDefault()
+              event.stopPropagation()
+            }
+
+            form.classList.add('was-validated')
+          }, false)
+        })
+      })()
     </script>
     <script src="{% static 'trade/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'trade/trade.js' %}"></script>

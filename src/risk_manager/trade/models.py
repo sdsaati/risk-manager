@@ -5,17 +5,18 @@
     and the by migrate command we can apply those queries
 """
 
+import logging
+from decimal import Decimal as d
+from decimal import getcontext
+
 # import uuid
 # for setting the default floating point of Decimals
 # from copy import deepcopy
 from typing import Any
-from django.db import transaction
+
 from django.contrib.auth.models import User
-from django.db import models
-from decimal import Decimal as d
-from decimal import getcontext
+from django.db import models, transaction
 from icecream import ic
-import logging
 
 logger = logging.getLogger("django")
 getcontext().prec = 4
@@ -72,17 +73,15 @@ class UserBroker(models.Model):
     broker = models.ForeignKey(Broker, on_delete=models.SET_NULL, null=True)
 
     # the whole balance that a user has in a broker
-    balance = models.DecimalField(max_digits=15, decimal_places=4, default=d(2000.0000))
+    balance = models.DecimalField(max_digits=15, decimal_places=4, default=d(0))
 
     # current reserve that we can take our risk from
-    reserve = models.DecimalField(max_digits=15, decimal_places=4, default=d(1800.0000))
+    reserve = models.DecimalField(max_digits=15, decimal_places=4, default=d(0))
     # with this we can compute definedReserve by using the balance of user
-    reservePercent = models.DecimalField(
-        max_digits=15, decimal_places=4, default=10.0000
-    )
+    reservePercent = models.DecimalField(max_digits=15, decimal_places=4, default=d(0))
     # with this we can compute risk for each trade
     # by using available balance for trading
-    riskPercent = models.DecimalField(max_digits=15, decimal_places=4, default=1.0000)
+    riskPercent = models.DecimalField(max_digits=15, decimal_places=4, default=d(0))
 
     def __str__(self):
         return self.user.username + " in " + self.broker.name

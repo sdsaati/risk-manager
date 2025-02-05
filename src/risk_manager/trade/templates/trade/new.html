@@ -4,138 +4,148 @@
 <!-- Width of 16 by default, 32 on medium screens, and 48 on large screens ex:w-16 -->
 {% comment %} the top sectoin of the position box {% endcomment %}
 {% block trade_top_position %}
-<script>
+  <script>
     // window.risk = {{ risk }} 
 
     async function get_risk(broker, symbol){
-        const url = "{% url 'api_risk' %}?broker="+broker+"&symbol="+symbol
-        return await fetch(url,{
+      const url = "{% url 'api_risk' %}?broker="+broker+"&symbol="+symbol
+      return await fetch(url,{
         method: 'GET',
         headers: {
-            'Content-Type': 'application/json'
+          'Content-Type': 'application/json'
         }
-        }).then(response => response.json()).then(data => {
-            window.risk = data
-            console.log("data from server is ", data)
-            return data
-        }).catch(error => console.error("Error:", error));
-        }
+      }).then(response => response.json()).then(data => {
+        window.risk = data
+        console.log("data from server is ", data)
+        return data
+      }).catch(error => console.error("Error:", error));
+    }
 
     async function get_commission(symbol, broker){
-        const url = "{% url 'api_commission' %}?symbol="+symbol+"&broker="+broker
-        return await fetch(url,{
+      const url = "{% url 'api_commission' %}?symbol="+symbol+"&broker="+broker
+      return await fetch(url,{
         method: 'GET',
         headers: {
-            'Content-Type': 'application/json'
+          'Content-Type': 'application/json'
         }
-    })
+      })
         .then(response => response.json()).then(data => {
-            window.commission = data
-            console.log("data from server is ", data)
-            return data
+          window.commission = data
+          console.log("data from server is ", data)
+          return data
         })
         .catch(error => console.error("Error:", error));
-        }
-    
+    }
+
 
     async function compute_amount(input) {
-        const entry = new Decimal(document.getElementsByName('entry')[0].value || 0)
-        const stop = new Decimal(document.getElementsByName('stop')[0].value || 0)
-        const target = new Decimal(document.getElementsByName('target')[0].value || 0)
-        const amountel = new Decimal(document.getElementsByName('amount')[0].value || 0)
-        const symbol = document.getElementsByName('symbol')[0].value
-        const broker = document.getElementsByName('broker')[0].value
-        const stop_percent = entry.minus(stop).dividedBy(entry).times(new Decimal(100))
-        const risk = await get_risk(broker, symbol)
-        const rr = target.minus(entry).dividedBy(entry.minus(stop)).toFixed(4)
-        document.getElementsByName('riskReward')[0].value = rr
-        const commission = await get_commission(symbol, broker)
-        document.getElementsByName('commission')[0].value = commission
-        let amount = new Decimal(risk).dividedBy((stop_percent.plus(commission).dividedBy(new Decimal(100))))
-        document.getElementsByName('amount')[0].value = amount.toFixed(4) 
-        console.log('risk is: ', risk, "type of risk is :", typeof (risk), ' and commission is: ', commission)
-        console.log(amount.toFixed(4), stop_percent.toFixed(4))
+      const entry = new Decimal(document.getElementsByName('entry')[0].value || 0)
+      const stop = new Decimal(document.getElementsByName('stop')[0].value || 0)
+      const target = new Decimal(document.getElementsByName('target')[0].value || 0)
+      const amountel = new Decimal(document.getElementsByName('amount')[0].value || 0)
+      const symbol = document.getElementsByName('symbol')[0].value
+      const broker = document.getElementsByName('broker')[0].value
+      const stop_percent = entry.minus(stop).dividedBy(entry).times(new Decimal(100))
+      const risk = await get_risk(broker, symbol)
+      const rr = target.minus(entry).dividedBy(entry.minus(stop)).toFixed(4)
+      document.getElementsByName('riskReward')[0].value = rr
+      const commission = await get_commission(symbol, broker)
+      document.getElementsByName('commission')[0].value = commission
+      let amount = new Decimal(risk).dividedBy((stop_percent.plus(commission).dividedBy(new Decimal(100))))
+      document.getElementsByName('amount')[0].value = amount.toFixed(4) 
+      console.log('risk is: ', risk, "type of risk is :", typeof (risk), ' and commission is: ', commission)
+      console.log(amount.toFixed(4), stop_percent.toFixed(4))
     }
 
     function handleSelectChange(selectElement) {
-        // Get the selected option
-        const selectedOption = selectElement.options[selectElement.selectedIndex];
+      // Get the selected option
+      const selectedOption = selectElement.options[selectElement.selectedIndex];
 
-        // Convert the text and value of the selected option to lowercase
-        selectedOption.text = selectedOption.text.toLowerCase();
-        selectedOption.value = selectedOption.value.toLowerCase();
+      // Convert the text and value of the selected option to lowercase
+      selectedOption.text = selectedOption.text.toLowerCase();
+      selectedOption.value = selectedOption.value.toLowerCase();
     }
 
-</script>
-    <div class="grid grid-rows-[1fr_1fr] grid-cols-[1fr_1fr] w-auto text-sm text-center justify-items-start">
-        <span class="px-1 py-0 text-center">{% trans "Account reserve" %} : <span>{{ user_broker.reserve }}</span></span>
-        <span class="px-1 py-0 text-center">{% trans "Account balance" %} : <span>{{ user_broker.balance }}</span></span>
-        <span class="px-1 py-0 text-center">{% trans "Account balance for trade" %} : <span>14</span></span>
-        <span class="px-1 py-0 text-center"><span>{% trans "Symbol" %} : <input name='symbol' oninput="this.value = this.value.toUpperCase();" class="bg-black/25 px-2.5 rounded" placeholder="BTC"></span></span>
-        <span class="px-1 py-0 text-center"><span>{% trans "Broker" %} : 
-            <select name='broker' placeholder="mexc" onchange="handleSelectChange(this);" class="bg-black/25 px-2.5 rounded">
-                {% for b in broker %}
-                <option id="{{b.name}}" value="{{b.name}}">{{b.name}}</option>
-                {% endfor %}
-            </select>
-    </span></span>
-    </div>
+  </script>
+
 {% endblock trade_top_position %}
 
 {% comment %} Positoin box {% endcomment %}
 {% block trade_position_content %}
+  <form id="dataform" class="card-body" action={% url 'new_trade_commit' %} method="post" onsubmit="return validateForm();">
+    {% csrf_token %}
+    <div class="grid grid-rows-[1fr_1fr] grid-cols-[1fr_1fr] w-auto text-sm text-center justify-items-start">
+      <span class="px-1 py-0 text-center">{% trans "Account reserve" %} : <span>{{ user_broker.reserve }}</span></span>
+      <span class="px-1 py-0 text-center">{% trans "Account balance" %} : <span>{{ user_broker.balance }}</span></span>
+      <span class="px-1 py-0 text-center">{% trans "Account balance for trade" %} : <span>14</span></span>
+      <span class="px-1 py-0 text-center"><span>{% trans "Symbol" %} : <input name='symbol' oninput="this.value = this.value.toUpperCase();" class="bg-black/25 px-2.5 rounded" placeholder="BTC"></span></span>
+      <span class="px-1 py-0 text-center"><span>{% trans "Broker" %} : 
+          <select name='broker' placeholder="mexc" onchange="handleSelectChange(this);" class="bg-black/25 px-2.5 rounded">
+            {% for b in broker %}
+              <option id="{{b.name}}" value="{{b.name}}">{{b.name}}</option>
+            {% endfor %}
+          </select>
+        </span></span>
+    </div>
     <div class="w-auto h-80 relative border-2 border-neutral-600 shadow place-self-center justify-self-center">
-    <!-- Target Area (Green) -->
-    <div class="bg-teal-700/25 h-3/5 flex justify-center items-center text-white">
+      <!-- Target Area (Green) -->
+      <div class="bg-teal-700/25 h-3/5 flex justify-center items-center text-white">
         <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 text-base font-bold rounded top-[2%]">{% trans 'Target' %}</span>
         <input name="target" class="w-44 absolute bg-black/50 px-2.5 py-1 rounded top-[13%]" type="text">
-    </div>
+      </div>
 
-    <!-- Entry Line -->
-    <div class="absolute w-full h-0.5 bg-black"></div>
-    <!-- Entry -->
-    <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 text-white font-bold text-base rounded top-[37%] left-[41%]">{% trans 'Entry' %}</span>
-    <input name="entry" class="w-44 absolute bg-black/50 px-2.5 py-1 text-white rounded top-[48%] left-[38%]" type="text">
+      <!-- Entry Line -->
+      <div class="absolute w-full h-0.5 bg-black"></div>
+      <!-- Entry -->
+      <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 text-white font-bold text-base rounded top-[37%] left-[41%]">{% trans 'Entry' %}</span>
+      <input name="entry" class="w-44 absolute bg-black/50 px-2.5 py-1 text-white rounded top-[48%] left-[38%]" type="text">
 
-    <!-- R:R -->
-    <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 text-white font-bold text-base rounded top-[37%] left-[4%]">{% trans 'R:R' %}</span>
-    <input name="riskReward" class="w-44 absolute bg-black/50 px-2.5 py-1 text-white rounded top-[48%] left-[1%]" type="text">
+      <!-- R:R -->
+      <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 text-white font-bold text-base rounded top-[37%] left-[4%]">{% trans 'R:R' %}</span>
+      <input name="riskReward" class="w-44 absolute bg-black/50 px-2.5 py-1 text-white rounded top-[48%] left-[1%]" type="text">
 
-    <!-- Amount -->
-    <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 text-white font-bold text-base rounded top-[2%] left-[4%]">{% trans 'Amount' %}</span>
-    <input name="amount" class="w-44 absolute bg-black/50 px-2.5 text-white py-1 rounded top-[13%] left-[1%]" type="text">
+      <!-- Amount -->
+      <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 text-white font-bold text-base rounded top-[2%] left-[4%]">{% trans 'Amount' %}</span>
+      <input name="amount" class="w-44 absolute bg-black/50 px-2.5 text-white py-1 rounded top-[13%] left-[1%]" type="text">
 
-    <!-- Commission -->
-    <span class="absolute w-32 text-center bg-black/50 text-white font-bold text-base px-2.5 py-1 rounded bottom-[17%] left-[4%]">{% trans 'Commision' %}</span>
-    <input name="commission" class="w-44 absolute bg-black/50 text-white px-2.5 py-1 rounded bottom-[28%] left-[1%]" type="text">
+      <!-- Commission -->
+      <span class="absolute w-32 text-center bg-black/50 text-white font-bold text-base px-2.5 py-1 rounded bottom-[17%] left-[4%]">{% trans 'Commision' %}</span>
+      <input name="commission" class="w-44 absolute bg-black/50 text-white px-2.5 py-1 rounded bottom-[28%] left-[1%]" type="text">
 
 
-    <!-- time frame -->
-    <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 text-white font-bold text-base rounded top-[37%] right-[4%]">{% trans 'TF' %}</span>
-    <input name="timeframe" class="w-44 absolute bg-black/50 px-2.5 py-1 text-white rounded top-[48%] right-[1%]" type="text">
+      <!-- time frame -->
+      <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 text-white font-bold text-base rounded top-[37%] right-[4%]">{% trans 'TF' %}</span>
+      <input name="timeframe" class="w-44 absolute bg-black/50 px-2.5 py-1 text-white rounded top-[48%] right-[1%]" type="text">
 
-    <!-- strategy -->
-    <span class="absolute w-32 text-center bg-black/50 text-white font-bold text-base px-2.5 py-1 rounded bottom-[17%] right-[4%]">{% trans 'Strategy' %}</span>
-    <input name="strategy" class="w-44 absolute bg-black/50 text-white px-2.5 py-1 rounded bottom-[28%] right-[1%]" type="text">
+      <!-- strategy -->
+      <span class="absolute w-32 text-center bg-black/50 text-white font-bold text-base px-2.5 py-1 rounded bottom-[17%] right-[4%]">{% trans 'Strategy' %}</span>
+      <input name="strategy" class="w-44 absolute bg-black/50 text-white px-2.5 py-1 rounded bottom-[28%] right-[1%]" type="text">
 
-    <!-- Stop Loss Area (Red) -->
-    <div class="bg-red-900/25 h-2/5 flex text-white justify-center items-center">
+      <!-- Stop Loss Area (Red) -->
+      <div class="bg-red-900/25 h-2/5 flex text-white justify-center items-center">
         <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 font-bold text-base rounded bottom-[2%]">{% trans 'Stop Loss' %}</span>
         <input name="stop" class="w-44 absolute bg-black/50 px-2.5 py-1 rounded bottom-[13%]" type="text">
+      </div>
     </div>
-    </div>
+  </form>
 {% endblock trade_position_content %}
 
 {% comment %} the bottom sectoin of the postion box {% endcomment %}
 {% block trade_bot_position %}
-    <div class="grid grid-rows-[1fr_1fr_1fr] w-auto text-sm text-center">
-        <span class="px-20">{% trans "New balance after trade" %}</span> 
-        <span class="px-20">{% trans "In case of loss" %}: <span>20</span></span>
-        <span class="px-20">{% trans "In case of win" %}: <span>40</span></span>
-        <button class="bg-slate-700/70 h-8 rounded px-1.5">{% trans 'Save' %}</button>
-        {{commited}}
+  <div class="row d-flex text-center">
+    <div class="col-12 w-100">{% trans "New balance after trade" %}</div> 
+    <div class="col-6">{% trans "In case of loss" %}: <span>20</span></div>
+    <div class="col-6">{% trans "In case of win" %}: <span>40</span></div>
+    <div class="col text-center">
+      {% if msg is not None %} 
+        <div class="alert alert-success">{% trans "Balance Saved." %}</div>
+      {% else %}
+        <div class="alert alert-danger">{% trans "Balance Not Saved Yet." %}</div>
+      {% endif %}
     </div>
+  </div>
 {% endblock trade_bot_position %}
+
 
 {% block trade_new_content %}
 {% endblock trade_new_content %}
