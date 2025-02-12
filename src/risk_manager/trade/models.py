@@ -5,7 +5,9 @@
     and the by migrate command we can apply those queries
 """
 
+from __future__ import annotations  # Delays evaluation of type hints until runtime
 import logging
+from abc import ABC, abstractmethod
 from decimal import Decimal as d
 from decimal import getcontext
 
@@ -109,6 +111,90 @@ class UserBroker(models.Model):
         ## self.save()
 
 
+class StopAndRiskrewardStrategy(ABC):
+    """
+    IMPORTANT! This is not a Model
+    This is strategy (design) pattern that let we choose
+    wether we should compute risk reward ratio and stop loss percentage from entry, stop, and targets from user inputs
+    or get it directly from user inputs
+    """
+
+    @abstractmethod
+    def get_risk_reward(self) -> d:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_stop_percentage(self) -> d:
+        raise NotImplementedError()
+
+
+class ComputeRRandSLP(StopAndRiskrewardStrategy):
+    """
+    IMPORTANT! This is not a Model
+    This class is a concrete class that is part of strategy pattern
+    it can compute risk_reward_ratio and stop_loss_percentage by entry, stop and target
+    """
+
+    def __init__(self, entry: d, stop: d, target: d, result: bool | None = None):
+        self.entry: d = entry
+        self.stop: d = stop
+        self.target: d = target
+        self.result: bool | None = result
+
+    def risk_reward(self) -> d:
+        if self.result:
+            return (self.target - self.entry) / (self.entry - self.stop)
+        else:
+            return -((self.target - self.entry) / (self.entry - self.stop))
+
+    def stop_percent(self) -> d:
+        return ((self.entry - self.stop) / self.entry) * d(100)
+
+    def get_risk_reward(self) -> d:
+        return self.risk_reward()
+
+    def get_stop_percentage(self) -> d:
+        return self.stop_percent()
+
+
+class GetRRandSLP(StopAndRiskrewardStrategy):
+    """
+    IMPORTANT! This is not a Model
+    This class is a concrete class that is part of strategy pattern
+    it can return risk_reward_ratio and stop_loss_percentage that user gave us
+    """
+
+    def __init__(self, risk_reward: d, stop_percent: d):
+        self.risk_reward: d = risk_reward
+        self.stop_percent: d = stop_percent
+
+    def get_risk_reward(self) -> d:
+        return self.risk_reward
+
+    def get_stop_percentage(self) -> d:
+        return self.stop_percent
+
+
+class RR_Stop_Factory:
+    def create(
+        self,
+        entry=None,
+        stop=None,
+        target=None,
+        risk_reward=None,
+        stop_percentage=None,
+        result=None,
+    ) -> StopAndRiskrewardStrategy:
+        if entry is not None and stop is not None and target is not None:
+            return ComputeRRandSLP(entry=entry, stop=stop, target=target, result=result)
+        elif stop_percentage is not None and risk_reward is not None:
+            return GetRRandSLP(stop_percent=stop_percentage, risk_reward=risk_reward)
+        else:
+            raise ValueError(
+                "You need to provide (entry, stop, target) or (risk_reward, stop_percentage)"
+            )
+
+
 class Trade(models.Model):
     """Trade table = Third table between users and symbols
 
@@ -121,23 +207,29 @@ class Trade(models.Model):
     symbol: Symbol = models.ForeignKey(Symbol, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
     date_ended = models.DateTimeField(auto_now=True, null=True, blank=True)
-    stop = models.DecimalField(max_digits=15, decimal_places=4)
-    entry = models.DecimalField(max_digits=15, decimal_places=4)
-    target = models.DecimalField(max_digits=15, decimal_places=4)
+    stop = models.DecimalField(max_digits=25, decimal_places=4)
+    entry = models.DecimalField(max_digits=25, decimal_places=4)
+    target = models.DecimalField(max_digits=25, decimal_places=4)
     # This will be a computational property
-    #    riskReward = models.DecimalField(max_digits=15,
+    #    riskReward = models.DecimalField(max_digits=25,
     #                                     decimal_places=4,
     #                                     default=d("1.0"))
     result = models.BooleanField(null=True, blank=True, default=None)
     result_amount = models.DecimalField(
-        null=True, blank=True, max_digits=15, decimal_places=4, default=None
+        null=True, blank=True, max_digits=25, decimal_places=4, default=None
     )
-    amount = models.DecimalField(max_digits=15, decimal_places=4)
+    amount = models.DecimalField(max_digits=25, decimal_places=4)
     picture = models.CharField(max_length=500, null=True, blank=True, default="")
     comment = models.TextField(null=True, blank=True, default="")
     isPositionChanged = models.BooleanField(default=False)
     timeFrame = models.CharField(max_length=400, null=True, blank=True, default="")
     strategy = models.CharField(max_length=500, null=True, blank=True, default="")
+    risk_reward = models.DecimalField(
+        null=True, blank=True, max_digits=25, decimal_places=4, default=None
+    )
+    stop_percent = models.DecimalField(
+        null=True, blank=True, max_digits=25, decimal_places=4, default=None
+    )
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -221,17 +313,6 @@ class Trade(models.Model):
                 self.symbol.broker.save()
 
     @property
-    def risk_reward(self) -> d:
-        if self.result:
-            return (self.target - self.entry) / (self.entry - self.stop)
-        else:
-            return -((self.target - self.entry) / (self.entry - self.stop))
-
-    @property
-    def stop_percent(self) -> d:
-        return ((self.entry - self.stop) / self.entry) * d(100)
-
-    @property
     def commission(self) -> d:
         if self.symbol.commission is None:
             return self.ub.broker.defaultCommission
@@ -265,9 +346,6 @@ class Trade(models.Model):
                 (self.ub.available_balance * (self.stop_percent / d(100)))
                 - (self.ub.available_balance * (self.commission / d(100)))
             )
-
-    def cascade_update_reserve_and_balances(self, modified_row_id):
-        pass
 
     class Meta:
         db_table = "trade_usersbrokersymbol"

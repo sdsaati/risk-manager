@@ -23,7 +23,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse  # creates urls from url names
 from django.utils.translation import gettext as _  # translation
 from icecream import ic
-from trade.models import Broker, Symbol, Trade, UserBroker
+from trade.models import Broker, RR_Stop_Factory, Symbol, Trade, UserBroker
 
 logger = logging.getLogger("django")
 
@@ -63,7 +63,7 @@ def new(req):
 
 @login_required()
 def new_commit(req):
-    """we come here from 'new' view. we save the data into db here and the
+    """Here we *received* from data from 'new' view. we save the data into db here and the
     will go back to 'new' view.
 
     Args:
@@ -75,7 +75,7 @@ def new_commit(req):
     broker: Broker = None
     symbol: Symbol = None
     user: User = None
-    commission: float = None
+    commission: d | None = None
 
     if req.user.is_authenticated:
         # a new instance of user
@@ -89,9 +89,9 @@ def new_commit(req):
 
     # determine the commission
     if p.get("commission") is not None and p.get("commission") != "":
-        commission = float(p.get("commission"))
+        commission = d(p.get("commission"))
     else:
-        commission = float(broker.defaultCommission)
+        commission = d(broker.defaultCommission)
 
     symbol, created = Symbol.objects.get_or_create(
         name=p.get("symbol"), broker=broker, commission=commission
@@ -110,15 +110,28 @@ def new_commit(req):
         reservePercent=ub_last.reservePercent,
         riskPercent=ub_last.riskPercent,
     )
+    # We don't know user sent us (stop_loss_percentage, risk_reward) or (entry, stop, target)
+    # So we are using a *factory* that decide which **strategy** based on user inputs should be used
+    # for computing risk_reward and stop_loss_percentage
+    factory = RR_Stop_Factory().create(
+        entry=d(p.get("entry", None)),
+        stop=d(p.get("stop", None)),
+        target=d(p.get("target", None)),
+        risk_reward=d(p.get("risk_reward", None)),
+        stop_loss_percentage=d(p.get("stop_loss_percentage", None)),
+        result=None,
+    )
     # Relationship, and we know that already there exists a user and a symbol
     # we already created
     Trade.objects.create(
         ub=ub,
         symbol=symbol,
-        entry=float(p.get("entry", 0.0)),
-        stop=float(p.get("stop", 0.0)),
-        target=float(p.get("target", 0.0)),
-        amount=float(p.get("amount", 0.0)),
+        entry=d(p.get("entry", 0.0)),
+        stop=d(p.get("stop", 0.0)),
+        target=d(p.get("target", 0.0)),
+        risk_reward=factory.get_risk_reward(),
+        stop_percent=factory.get_stop_percentage(),
+        amount=d(p.get("amount", 0.0)),
         picture=p.get("picture"),
         comment=p.get("comment"),
         timeFrame=p.get("timeframe"),

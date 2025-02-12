@@ -1,6 +1,7 @@
 # from django.db.models.signals import post_save  # the actual signal
 import logging
 
+from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.models.signals import pre_save  # the actual signal
 from django.dispatch import receiver  # decorator for connecting signal
@@ -68,19 +69,3 @@ def check_balance_is_changed(sender: Trade, instance: Trade, **kwargs):
                 instance.symbol.save()
                 instance.symbol.broker.save()
                 ic("AFTER:", instance.ub.balance, instance.ub.reserve, instance.amount)
-                if instance.result is not None:  # (2) if new result is available
-                    if before_edit.result is not None:  # (5)
-                        # (6)
-                        pass
-                    else:
-                        # (7)
-                        pass
-                    if instance.result == True:  # (3) if new result is Yes or No
-                        pass
-                    else:
-                        pass
-                    ####FIXME: temporary I commented this##instance.update_reserve_and_balance(instance.result)
-                    # ic(instance.ub.balance)
-                else:  # (4) result is None
-                    ####FIXME: temporary I commented this##instance.amount = instance.amount_per_trade
-                    pass

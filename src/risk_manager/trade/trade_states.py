@@ -31,6 +31,8 @@ class TradeStateManager:
         self.trade_edited_record: Trade = trade_edited_record
         self.trade_before_edit_record: Trade = trade_before_edit_record
         self.trade_class: Trade = trade_class
+        self.user = self.trade_edited_record.ub.user
+        self.broker = self.trade_edited_record.ub.broker
         self.goto(Decision())  # The first state that decides what we do
 
     def goto(self, state: State):
@@ -77,12 +79,15 @@ class State(ABC):
         return self.state_manager.trade_class
 
     def prev(self) -> Trade | None:
-        return (
-            self.get_trade_class()
-            .objects.filter(id__lt=self.state_manager.trade_edited_record.id)
-            .order_by("-id")
-            .first()
-        )
+        # return (
+        #     self.get_trade_class()
+        #     .objects.filter(id__lt=self.state_manager.trade_edited_record.id)
+        #     .order_by("-id")
+        #     .first()
+        # )
+        return UserBroker.objects.filter(
+            user=self.state_manager.user, broker=self.state_manager.broker
+        ).last()
 
     def before(self) -> Trade:
         return self.state_manager.trade_before_edit_record
@@ -152,11 +157,11 @@ class NoneToNone(State):
 
     def handle(self):
         try:
-            self.after().ub.balance = self.prev().ub.balance
-            self.after().ub.reserve = self.prev().ub.reserve
+            self.after().ub.balance = self.prev().balance
+            self.after().ub.reserve = self.prev().reserve
         except:
-            self.after().ub.balance = UserBroker.objects.first().balance
-            self.after().ub.reserve = UserBroker.objects.first().reserve
+            self.after().ub.balance = UserBroker.objects.last().balance
+            self.after().ub.reserve = UserBroker.objects.last().reserve
         self.after().amount = self.after().amount_per_trade
         # alls = self.all_records_after()
 
@@ -187,13 +192,13 @@ class TrueToFalseViceVerca(State):
     def handle(self):
         try:
             self.after().update_reserve_and_balance(
-                previews_trade_balance=self.prev().ub.balance,
-                previews_trade_reserve=self.prev().ub.reserve,
+                previews_trade_balance=self.prev().balance,
+                previews_trade_reserve=self.prev().reserve,
             )
         except:
             self.after().update_reserve_and_balance(
-                previews_trade_balance=UserBroker.objects.first().balance,
-                previews_trade_reserve=UserBroker.objects.first().reserve,
+                previews_trade_balance=UserBroker.objects.last().balance,
+                previews_trade_reserve=UserBroker.objects.last().reserve,
             )
         self.after().amount = self.after().amount_per_trade
         self.casace_update_trades_after_here()
