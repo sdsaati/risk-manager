@@ -9,7 +9,7 @@ from decimal import Decimal as d
 from decimal import getcontext
 from copy import copy, deepcopy
 from django.db.models import QuerySet  # for typehint of records
-from trade.models import Symbol, Trade, UserBroker
+from trade.models import Broker, RR_Stop_Factory, Symbol, Trade, UserBroker
 
 logger = logging.getLogger("django")
 getcontext().prec = 4
@@ -28,11 +28,22 @@ class TradeStateManager:
         trade_before_edit_record: Trade,
         trade_class: Trade,
     ):
+
         self.trade_edited_record: Trade = trade_edited_record
         self.trade_before_edit_record: Trade = trade_before_edit_record
         self.trade_class: Trade = trade_class
         self.user = self.trade_edited_record.ub.user
         self.broker = self.trade_edited_record.ub.broker
+        factory = RR_Stop_Factory().create(
+            entry=d(self.trade_edited_record.entry),
+            stop=d(self.trade_edited_record.stop),
+            target=d(self.trade_edited_record.target),
+            risk_reward=d(self.trade_edited_record.risk_reward),
+            stop_percentage=d(self.trade_edited_record.stop_percent),
+            result=self.trade_edited_record.result,
+        )
+        self.trade_edited_record.risk_reward = factory.get_risk_reward()
+        self.trade_edited_record.stop_percent = factory.get_stop_percentage()
         self.goto(Decision())  # The first state that decides what we do
 
     def goto(self, state: State):
@@ -71,7 +82,7 @@ class State(ABC):
         else:
             logger.warn(f">> {str(self)}")
             if self.prev() is not None:
-                logger.warn("PrevRecordID=" + str(self.prev().id))
+                logger.warn("PrevRecordID=" + str(self.prev().id))  # type: ignore
             logger.warn("BeforeEditID=" + str(self.before().id))
             logger.warn("AfterEditID =" + str(self.after().id))
 

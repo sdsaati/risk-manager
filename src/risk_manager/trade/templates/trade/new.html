@@ -74,7 +74,7 @@
 {% block trade_position_content %}
   <div class="px-1 py-0 text-center">{% trans "Account reserve" %} : <span>{{ user_broker.reserve }}</span></div>
   <div class="px-1 py-0 text-center">{% trans "Account balance" %} : <span>{{ user_broker.balance }}</span></div>
-  <div class="px-1 py-0 text-center">{% trans "Account balance for trade" %} : <span>14</span></div>
+  <div class="px-1 py-0 text-center">{% trans "Account available balance for trade" %} : <span>14</span></div>
   <div class="accordion" id="accordionExample">
     <div class="accordion-item">
       <h2 class="accordion-header">
@@ -85,14 +85,14 @@
       <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionExample">
         <div class="accordion-body">
 
-          <form id="dataform" class="card-body needs-validation" action={% url 'new_trade_commit' %} method="post" onsubmit="return validateForm();" novalidate>
+          <form id="form1" class="card-body needs-validation" action={% url 'new_trade_commit' %} method="post" onsubmit="return validateForm();" novalidate>
             {% csrf_token %}
             <div class="row">
               <div class="mb-3">
                 <label for="stop" class="form-label">{% trans "Enter the Stop Loss % Here:" %}</label>
                 <div class="input-group">
                   <span class="input-group-text" id="basic-addon3">%</span>
-                  <input name="stop" type="text" class="form-control" id="balance" aria-describedby="basic-addon3 basic-addon4" autofocus required>
+                  <input name="stop_loss_percentage" type="text" class="form-control" id="balance" aria-describedby="basic-addon3 basic-addon4" autofocus required>
                   <div class="invalid-feedback">
                     {% trans "Please provide a valid % of stop loss." %}
                   </div>
@@ -101,13 +101,18 @@
               </div>
               <div class="mb-3">
                 <label for="rrr" class="form-label">{% trans "Enter the Risk/Reward Ratio:" %}</label>
-                <input name="rr" type="text" class="form-control" id="rrr" aria-describedby="basic-addon3 basic-addon4" required>
+                <input name="risk_reward" type="text" class="form-control" id="rrr" aria-describedby="basic-addon3 basic-addon4" required>
                 <div class="invalid-feedback">
                   {% trans "Please provide a valid risk reward ratio." %}
                 </div>
               </div>
 
-              <div class="col-12 w-100">{% trans "Account balance" %} : <span id="bal">{{ user_broker.balance }}</span></div>
+
+              <!-- Amount -->
+              <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 text-white font-bold text-base rounded top-[2%] left-[4%]">{% trans 'Amount' %}</span>
+              <input name="amount" class="w-44 absolute bg-black/50 px-2.5 text-white py-1 rounded top-[13%] left-[1%]" type="text">
+
+              <div class="col-12 w-100">{% trans "amount balance for this trade" %} : <span id="bal">{{ 'Amount' }}</span></div>
               <button class="btn btn-primary w-100 mt-3">{% trans "Save" %}</button>
             </div>
           </form>
@@ -124,7 +129,7 @@
       <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
         <div class="accordion-body">
 
-          <form id="dataform" class="card-body" action={% url 'new_trade_commit' %} method="post" onsubmit="return validateForm();">
+          <form id="form2" class="card-body" action={% url 'new_trade_commit' %} method="post" onsubmit="return validateForm();">
             {% csrf_token %}
             <div class="row">
               <div class="px-1 py-0 text-center"><span>{% trans "Symbol" %} : <input name='symbol' oninput="this.value = this.value.toUpperCase();" class="bg-black/25 px-2.5 rounded" placeholder="BTC"></span></div>

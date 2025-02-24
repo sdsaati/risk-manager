@@ -118,7 +118,7 @@ def new_commit(req):
         stop=d(p.get("stop", None)),
         target=d(p.get("target", None)),
         risk_reward=d(p.get("risk_reward", None)),
-        stop_loss_percentage=d(p.get("stop_loss_percentage", None)),
+        stop_percentage=d(p.get("stop_loss_percentage", None)),
         result=None,
     )
     # Relationship, and we know that already there exists a user and a symbol
