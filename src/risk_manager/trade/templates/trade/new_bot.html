@@ -1,0 +1,16 @@
+{% load static %} <!-- this will let us to use static -->
+{% load i18n %} <!-- to use {% trans 'something' %} -->
+{% block trade_bot_position %}
+  <div class="row d-flex text-center">
+    <div class="col-12 w-100">{% trans "New balance after trade" %}</div> 
+    <div class="col-6">{% trans "In case of loss" %}: <span>20</span></div>
+    <div class="col-6">{% trans "In case of win" %}: <span>40</span></div>
+    <div class="col text-center">
+      {% if msg is not None %} 
+        <div class="alert alert-success">{% trans "Balance Saved." %}</div>
+      {% else %}
+        <div class="alert alert-danger">{% trans "Balance Not Saved Yet." %}</div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

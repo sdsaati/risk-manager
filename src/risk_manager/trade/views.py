@@ -113,10 +113,17 @@ def new_commit(req):
     # We don't know user sent us (stop_loss_percentage, risk_reward) or (entry, stop, target)
     # So we are using a *factory* that decide which **strategy** based on user inputs should be used
     # for computing risk_reward and stop_loss_percentage
+    entry = p.get("entry", None)
+    stop = p.get("stop", None)
+    target = p.get("target", None)
+    if entry is not None and stop is not None and target is not None:
+        entry = d(entry)
+        stop = d(stop)
+        target = d(target)
     factory = RR_Stop_Factory().create(
-        entry=d(p.get("entry", None)),
-        stop=d(p.get("stop", None)),
-        target=d(p.get("target", None)),
+        entry=entry,
+        stop=stop,
+        target=target,
         risk_reward=d(p.get("risk_reward", None)),
         stop_percentage=d(p.get("stop_loss_percentage", None)),
         result=None,
@@ -126,9 +133,9 @@ def new_commit(req):
     Trade.objects.create(
         ub=ub,
         symbol=symbol,
-        entry=d(p.get("entry", 0.0)),
-        stop=d(p.get("stop", 0.0)),
-        target=d(p.get("target", 0.0)),
+        entry=entry,
+        stop=stop,
+        target=target,
         risk_reward=factory.get_risk_reward(),
         stop_percent=factory.get_stop_percentage(),
         amount=d(p.get("amount", 0.0)),
@@ -246,9 +253,9 @@ def api_commission(req):
         symbol_name = req.GET.get("symbol")
         broker_name = req.GET.get("broker")
 
-        broker: Broker = Broker.objects.get(name=broker_name)
-        symbol: Symbol = get_object_or_404(Symbol, name=symbol_name, broker=broker)
-        # symbol: Symbol = Symbol.objects.get(name=symbol_name, broker=broker)
+        broker: Broker = Broker.objects.filter(name=broker_name).last()
+        # symbol: Symbol = get_object_or_404(Symbol, name=symbol_name, broker=broker)
+        symbol: Symbol = Symbol.objects.filter(name=symbol_name, broker=broker).last()
 
         commission = None
         # us: UserSymbol = UserSymbol.objects.filter(user=user, symbol=symbol).first()
@@ -269,15 +276,14 @@ def api_risk(req):
 
         broker_name = req.GET.get("broker")
         sym_name = req.GET.get("symbol")
-        broker: Broker = Broker.objects.get(name=broker_name)
+        broker: Broker = Broker.objects.filter(name=broker_name).last()
         ub: UserBroker = UserBroker.objects.filter(user=user, broker=broker).last()
-        sym: Symbol = Symbol.objects.filter(broker=broker, name=sym_name).first()
+        sym: Symbol = Symbol.objects.filter(broker=broker, name=sym_name).last()
         if sym:
             trade: Trade = (
                 Trade.objects.filter(ub=ub, symbol=sym).order_by("-id").first()
             )
-        if trade:
-            # ic(trade.risk)
-            return JsonResponse(trade.risk, safe=False)
-        else:
-            return JsonResponse({"message": "No trades found"}, status=404, safe=False)
+            ic(trade.risk)
+            if trade:
+                return JsonResponse(trade.risk, safe=False)
+        return JsonResponse({"message": "No trades found"}, status=404, safe=False)

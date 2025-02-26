@@ -60,7 +60,12 @@ def check_balance_is_changed(sender: Trade, instance: Trade, **kwargs):
             or (before_edit.ub.reserve != instance.reserve)
             or (before_edit.balance != instance.balance)
         ):
-            ic("BEFORE:", instance.ub.balance, instance.ub.reserve, instance.amount)
+            ic(
+                "BEFORE:",
+                before_edit.ub.balance,
+                before_edit.ub.reserve,
+                before_edit.amount,
+            )
             tsm = TradeStateManager(instance, before_edit, sender)
             with transaction.atomic():
                 instance.ub.save()

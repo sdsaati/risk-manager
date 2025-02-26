@@ -1,0 +1,69 @@
+{% load static %} <!-- this will let us to use static -->
+{% load i18n %} <!-- to use {% trans 'something' %} -->
+
+{% block form2 %}
+  <form id="form2" class="card-body" action={% url 'new_trade_commit' %} method="post" onsubmit="return validateForm();">
+    {% csrf_token %}
+      <input type="hidden" name="broker" value="" id="form2_broker">
+    <div class="row">
+
+      <!-- Symbol -->
+      <div class="mb-3">
+        <label for="form2_symbol" class="form-label">{% trans "Symbol" %} :</label>
+           <input id="form2_symbol" name='symbol' oninput="this.value = this.value.toUpperCase();" class="form-control" placeholder="عیار">
+      </div>
+
+      <!-- Entry Line -->
+      <div class="mb-3">
+      <label class="form-label" for="form2_entry">{% trans 'Entry' %}</label>
+      <input name="entry" id="form2_entry" class="form-control" type="text">
+      </div>
+
+      <!-- Stop Loss Area (Red) -->
+      <div class="mb-3">
+        <label class="form-label" for="form2_stop">{% trans 'Stop Loss' %}</label>
+        <input name="stop" id="form2_stop" class="form-control" type="text">
+      </div>
+
+
+      <!-- Target Area (Green) -->
+      <div class="mb-3">
+        <label class="form-label" for="form2_target">{% trans 'Target' %}</label>
+        <input name="target" id="form2_target" class="form-control" type="text">
+      </div>
+
+      {% comment %}
+      <!-- R:R -->
+      <label class="form-label" for="">{% trans 'R:R' %}</label>
+      <input name="risk_reward" class="" type="text">
+      {% endcomment %}
+
+      <!-- time frame -->
+      <div class="mb-3">
+      <label class="form-label" for="form2_tf">{% trans 'TF' %}</label>
+      <input name="timeframe" id="form2_tf" class="form-control" type="text">
+      </div>
+
+      <!-- strategy -->
+      <div class="mb-3">
+      <label class="form-label" for="form2_strategy">{% trans 'Strategy' %}</label>
+      <input name="strategy" id="form2_strategy" class="form-control" type="text">
+      </div>
+
+      <!-- Commission -->
+      <div class="mb-3">
+      <label class="form-label" for="form2_commission">{% trans 'Commision' %}</label>
+      <input name="commission" id="form2_commission" class="form-control" type="text">
+      </div>
+
+
+      <!-- Amount -->
+      <div class="mb-3">
+      <label class="form-label" for="form2_amount">{% trans 'Amount' %}</label>
+      <input name="amount" id="form2_amount" class="form-control" type="text">
+      </div>
+
+      <button class="btn btn-primary w-100 mt-3">{% trans "Save" %}</button>
+    </div>
+  </form>
+{% endblock %}

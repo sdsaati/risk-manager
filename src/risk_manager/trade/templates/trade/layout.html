@@ -14,14 +14,11 @@
     <script type="module">
       import Decimal from "{% static 'trade/decimal.mjs' %}";
     </script>
-    {% if viewname == "new" %}
-      <script>
-        /* Running */
-        $(document).ready(function(){
-          $("#form2 input").keyup(compute_amount)
-        });
-      </script>
-    {% endif %}
+    {% comment %}
+      {% if viewname == "new" %} 
+      {% endif %}
+    {% endcomment %} 
+    {% block js_head %}{% endblock %}
   </head>
 
   <body class="container-fluid d-flex flex-column min-vh-100 opacity-75">
@@ -44,27 +41,25 @@
     <div class="flex-grow-1 d-flex h-100"> <!-- Added this wrapper -->
       <div class="row w-100 mx-auto">
         <article id="mainArticle" class="col-3 d-flex align-self-start">{% trans 'Calculator' %}</article>
-        <nav id="mainNav" class="col-6 align-self-center card">
+        <nav id="mainNav" class="col-9 align-self-center card">
 
           <div class="card-header text-center">
             {{ title }}
           </div>
-          {% block trade_top_position %}{% endblock trade_top_position %}
-          {% block trade_position_content %}{% endblock trade_position_content %}
+          {% block trade_top_position %}{% endblock %}
+          {% block trade_position_content %}{% endblock %}
 
           <div class="card-footer text-body-secondary">
 
-            {% block trade_bot_position %}{% endblock trade_bot_position %}
+            {% block trade_bot_position %}{% endblock %}
           </div>
         </nav>
-        <div id="siteAds" class="col-3 d-flex align-self-start justify-content-end text-right">{% trans 'Calendar' %}</div>
       </div>
       <hr class="mt-2 align-self-end">
     </div>
 
 
-    {% block trade_index_content %}{% endblock trade_index_content %}
-    {% block trade_new_content %}{% endblock trade_new_content %}
+    {% block trade_index_content %}{% endblock %}
     <hr class="mt-2">
     <footer id="pageFooter" class="mt-auto">{% trans 'Footer' %}</footer>
     <script>
@@ -77,7 +72,7 @@
         inputs.forEach(function(input) {
           // If the input is empty, set its value to the placeholder
           if (!input.value) {
-            console.log(input.value)
+            // console.log(input.value)
             input.value = input.placeholder;
           }
         });
@@ -106,7 +101,9 @@
       })()
     </script>
     <script src="{% static 'trade/bootstrap.bundle.min.js' %}"></script>
-    <script src="{% static 'trade/trade.js' %}"></script>
+    {% comment %} 
+      <script src="{% static 'trade/trade.js' %}"></script>
+    {% endcomment %}
   </body>
 
 </html>

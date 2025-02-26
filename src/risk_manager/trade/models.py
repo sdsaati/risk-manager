@@ -207,9 +207,9 @@ class Trade(models.Model):
     symbol: Symbol = models.ForeignKey(Symbol, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
     date_ended = models.DateTimeField(auto_now=True, null=True, blank=True)
-    stop = models.DecimalField(max_digits=25, decimal_places=4)
-    entry = models.DecimalField(max_digits=25, decimal_places=4)
-    target = models.DecimalField(max_digits=25, decimal_places=4)
+    stop = models.DecimalField(max_digits=25, decimal_places=4, null=True, blank=True)
+    entry = models.DecimalField(max_digits=25, decimal_places=4, null=True, blank=True)
+    target = models.DecimalField(max_digits=25, decimal_places=4, null=True, blank=True)
     # This will be a computational property
     #    riskReward = models.DecimalField(max_digits=25,
     #                                     decimal_places=4,
@@ -218,7 +218,7 @@ class Trade(models.Model):
     result_amount = models.DecimalField(
         null=True, blank=True, max_digits=25, decimal_places=4, default=None
     )
-    amount = models.DecimalField(max_digits=25, decimal_places=4)
+    amount = models.DecimalField(max_digits=25, decimal_places=4, null=True, blank=True)
     picture = models.CharField(max_length=500, null=True, blank=True, default="")
     comment = models.TextField(null=True, blank=True, default="")
     isPositionChanged = models.BooleanField(default=False)

@@ -3,12 +3,14 @@
 from __future__ import annotations  # Delays evaluation of type hints until runtime
 
 import logging
-from typing import Any
 from abc import ABC, abstractmethod
+from copy import copy, deepcopy
 from decimal import Decimal as d
 from decimal import getcontext
-from copy import copy, deepcopy
+from typing import Any
+
 from django.db.models import QuerySet  # for typehint of records
+from icecream import ic
 from trade.models import Broker, RR_Stop_Factory, Symbol, Trade, UserBroker
 
 logger = logging.getLogger("django")
@@ -34,10 +36,19 @@ class TradeStateManager:
         self.trade_class: Trade = trade_class
         self.user = self.trade_edited_record.ub.user
         self.broker = self.trade_edited_record.ub.broker
+        if (
+            self.trade_edited_record.entry is not None
+            and self.trade_edited_record.stop is not None
+            and self.trade_edited_record.target is not None
+        ):
+            entry = d(self.trade_edited_record.entry)
+            stop = d(self.trade_edited_record.stop)
+            target = d(self.trade_edited_record.target)
+
         factory = RR_Stop_Factory().create(
-            entry=d(self.trade_edited_record.entry),
-            stop=d(self.trade_edited_record.stop),
-            target=d(self.trade_edited_record.target),
+            entry=self.trade_edited_record.entry,
+            stop=self.trade_edited_record.stop,
+            target=self.trade_edited_record.target,
             risk_reward=d(self.trade_edited_record.risk_reward),
             stop_percentage=d(self.trade_edited_record.stop_percent),
             result=self.trade_edited_record.result,
@@ -96,9 +107,15 @@ class State(ABC):
         #     .order_by("-id")
         #     .first()
         # )
-        return UserBroker.objects.filter(
-            user=self.state_manager.user, broker=self.state_manager.broker
-        ).last()
+        return (
+            UserBroker.objects.filter(
+                user=self.state_manager.user,
+                broker=self.state_manager.broker,
+                id__lt=self.state_manager.trade_edited_record.ub.id,
+            )
+            .order_by("-id")
+            .first()
+        )
 
     def before(self) -> Trade:
         return self.state_manager.trade_before_edit_record
@@ -201,6 +218,7 @@ class TrueToFalseViceVerca(State):
     """
 
     def handle(self):
+        ic("#######", self.prev().balance, "########")
         try:
             self.after().update_reserve_and_balance(
                 previews_trade_balance=self.prev().balance,

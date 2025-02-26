@@ -1,81 +1,23 @@
 {% extends 'trade/layout.html' %} <!-- we want to use a layout -->
 {% load static %} <!-- this will let us to use static -->
 {% load i18n %} <!-- to use {% trans 'something' %} -->
-<!-- Width of 16 by default, 32 on medium screens, and 48 on large screens ex:w-16 -->
-{% comment %} the top sectoin of the position box {% endcomment %}
+{% block js_head %}
+    <script>
+        /* Share codes between form1 and form2 */
+        $(document).ready(function(){
+          /* $("input").keyup(compute_amount) */
+          {% include "trade/new_form1.js" %}
+          {% include "trade/new_form2.js" %} 
+        });
+    </script>
+{% endblock %}
+
 {% block trade_top_position %}
-  <script>
-    // window.risk = {{ risk }} 
+  {% include "trade/new_top.html" %}
+{% endblock %}
 
-    async function get_risk(broker, symbol){
-      const url = "{% url 'api_risk' %}?broker="+broker+"&symbol="+symbol
-      return await fetch(url,{
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }).then(response => response.json()).then(data => {
-        window.risk = data
-        console.log("data from server is ", data)
-        return data
-      }).catch(error => console.error("Error:", error));
-    }
-
-    async function get_commission(symbol, broker){
-      const url = "{% url 'api_commission' %}?symbol="+symbol+"&broker="+broker
-      return await fetch(url,{
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-        .then(response => response.json()).then(data => {
-          window.commission = data
-          console.log("data from server is ", data)
-          return data
-        })
-        .catch(error => console.error("Error:", error));
-    }
-
-
-    async function compute_amount(input) {
-      const entry = new Decimal(document.getElementsByName('entry')[0].value || 0)
-      const stop = new Decimal(document.getElementsByName('stop')[0].value || 0)
-      const target = new Decimal(document.getElementsByName('target')[0].value || 0)
-      const amountel = new Decimal(document.getElementsByName('amount')[0].value || 0)
-      const symbol = document.getElementsByName('symbol')[0].value
-      const broker = document.getElementsByName('broker')[0].value
-      const stop_percent = entry.minus(stop).dividedBy(entry).times(new Decimal(100))
-      const risk = await get_risk(broker, symbol)
-      const rr = target.minus(entry).dividedBy(entry.minus(stop)).toFixed(4)
-      document.getElementsByName('riskReward')[0].value = rr
-      const commission = await get_commission(symbol, broker)
-      document.getElementsByName('commission')[0].value = commission
-      let amount = new Decimal(risk).dividedBy((stop_percent.plus(commission).dividedBy(new Decimal(100))))
-      document.getElementsByName('amount')[0].value = amount.toFixed(4) 
-      console.log('risk is: ', risk, "type of risk is :", typeof (risk), ' and commission is: ', commission)
-      console.log(amount.toFixed(4), stop_percent.toFixed(4))
-    }
-
-    function handleSelectChange(selectElement) {
-      // Get the selected option
-      const selectedOption = selectElement.options[selectElement.selectedIndex];
-
-      // Convert the text and value of the selected option to lowercase
-      selectedOption.text = selectedOption.text.toLowerCase();
-      selectedOption.value = selectedOption.value.toLowerCase();
-    }
-
-  </script>
-
-{% endblock trade_top_position %}
-
-{% comment %} Positoin box {% endcomment %}
 {% block trade_position_content %}
-  <div class="px-1 py-0 text-center">{% trans "Account reserve" %} : <span>{{ user_broker.reserve }}</span></div>
-  <div class="px-1 py-0 text-center">{% trans "Account balance" %} : <span>{{ user_broker.balance }}</span></div>
-  <div class="px-1 py-0 text-center">{% trans "Account available balance for trade" %} : <span>14</span></div>
-  <div class="accordion" id="accordionExample">
+    <div class="accordion" id="accordionExample">
     <div class="accordion-item">
       <h2 class="accordion-header">
         <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
@@ -84,39 +26,12 @@
       </h2>
       <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionExample">
         <div class="accordion-body">
-
-          <form id="form1" class="card-body needs-validation" action={% url 'new_trade_commit' %} method="post" onsubmit="return validateForm();" novalidate>
-            {% csrf_token %}
-            <div class="row">
-              <div class="mb-3">
-                <label for="stop" class="form-label">{% trans "Enter the Stop Loss % Here:" %}</label>
-                <div class="input-group">
-                  <span class="input-group-text" id="basic-addon3">%</span>
-                  <input name="stop_loss_percentage" type="text" class="form-control" id="balance" aria-describedby="basic-addon3 basic-addon4" autofocus required>
-                  <div class="invalid-feedback">
-                    {% trans "Please provide a valid % of stop loss." %}
-                  </div>
-                </div>
-                <div class="form-text" id="basic-addon4">{% trans "example: 5 (means 5%)." %}</div>
-              </div>
-              <div class="mb-3">
-                <label for="rrr" class="form-label">{% trans "Enter the Risk/Reward Ratio:" %}</label>
-                <input name="risk_reward" type="text" class="form-control" id="rrr" aria-describedby="basic-addon3 basic-addon4" required>
-                <div class="invalid-feedback">
-                  {% trans "Please provide a valid risk reward ratio." %}
-                </div>
-              </div>
-
-
-              <!-- Amount -->
-              <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 text-white font-bold text-base rounded top-[2%] left-[4%]">{% trans 'Amount' %}</span>
-              <input name="amount" class="w-44 absolute bg-black/50 px-2.5 text-white py-1 rounded top-[13%] left-[1%]" type="text">
-
-              <div class="col-12 w-100">{% trans "amount balance for this trade" %} : <span id="bal">{{ 'Amount' }}</span></div>
-              <button class="btn btn-primary w-100 mt-3">{% trans "Save" %}</button>
-            </div>
-          </form>
-
+          {% comment %}
+            stop loss + risk reward
+          {% endcomment %}
+          {% block form1 %}
+            {% include "trade/new_form1.html" %}
+          {% endblock %}
         </div>
       </div>
     </div>
@@ -128,100 +43,21 @@
       </h2>
       <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
         <div class="accordion-body">
-
-          <form id="form2" class="card-body" action={% url 'new_trade_commit' %} method="post" onsubmit="return validateForm();">
-            {% csrf_token %}
-            <div class="row">
-              <div class="px-1 py-0 text-center"><span>{% trans "Symbol" %} : <input name='symbol' oninput="this.value = this.value.toUpperCase();" class="bg-black/25 px-2.5 rounded" placeholder="BTC"></span></div>
-
-              <div class="mb-3">
-                <label for="broker" class="form-label">{% trans "Select your broker." %}</label>
-                <select name='broker' id="broker" placeholder="" onchange="handleSelectChange(this);" class="form-select" required>
-                  <option selected></option>
-                  {% for b in brokers %}
-                    <option id="{{b.name}}" value="{{b.name}}">{{b.name}}</option>
-                  {% endfor %}
-                </select>
-                <div class="invalid-feedback">
-                  {% trans "Please select a broker." %}
-                </div>
-              </div>
-
-
-
-              <div class="px-1 py-0 text-center"><span>{% trans "Broker" %} : 
-                  <select name='broker' placeholder="mexc" onchange="handleSelectChange(this);" class="bg-black/25 px-2.5 rounded">
-                    {% for b in broker %}
-                      <option id="{{b.name}}" value="{{b.name}}">{{b.name}}</option>
-                    {% endfor %}
-                  </select>
-                </span></div>
-            </div>
-            <div class="w-auto h-80 relative border-2 border-neutral-600 shadow place-self-center justify-self-center">
-              <!-- Target Area (Green) -->
-              <div class="bg-teal-700/25 h-3/5 flex justify-center items-center text-white">
-                <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 text-base font-bold rounded top-[2%]">{% trans 'Target' %}</span>
-                <input name="target" class="w-44 absolute bg-black/50 px-2.5 py-1 rounded top-[13%]" type="text">
-              </div>
-
-              <!-- Entry Line -->
-              <div class="absolute w-full h-0.5 bg-black"></div>
-              <!-- Entry -->
-              <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 text-white font-bold text-base rounded top-[37%] left-[41%]">{% trans 'Entry' %}</span>
-              <input name="entry" class="w-44 absolute bg-black/50 px-2.5 py-1 text-white rounded top-[48%] left-[38%]" type="text">
-
-              <!-- R:R -->
-              <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 text-white font-bold text-base rounded top-[37%] left-[4%]">{% trans 'R:R' %}</span>
-              <input name="riskReward" class="w-44 absolute bg-black/50 px-2.5 py-1 text-white rounded top-[48%] left-[1%]" type="text">
-
-              <!-- Amount -->
-              <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 text-white font-bold text-base rounded top-[2%] left-[4%]">{% trans 'Amount' %}</span>
-              <input name="amount" class="w-44 absolute bg-black/50 px-2.5 text-white py-1 rounded top-[13%] left-[1%]" type="text">
-
-              <!-- Commission -->
-              <span class="absolute w-32 text-center bg-black/50 text-white font-bold text-base px-2.5 py-1 rounded bottom-[17%] left-[4%]">{% trans 'Commision' %}</span>
-              <input name="commission" class="w-44 absolute bg-black/50 text-white px-2.5 py-1 rounded bottom-[28%] left-[1%]" type="text">
-
-
-              <!-- time frame -->
-              <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 text-white font-bold text-base rounded top-[37%] right-[4%]">{% trans 'TF' %}</span>
-              <input name="timeframe" class="w-44 absolute bg-black/50 px-2.5 py-1 text-white rounded top-[48%] right-[1%]" type="text">
-
-              <!-- strategy -->
-              <span class="absolute w-32 text-center bg-black/50 text-white font-bold text-base px-2.5 py-1 rounded bottom-[17%] right-[4%]">{% trans 'Strategy' %}</span>
-              <input name="strategy" class="w-44 absolute bg-black/50 text-white px-2.5 py-1 rounded bottom-[28%] right-[1%]" type="text">
-
-              <!-- Stop Loss Area (Red) -->
-              <div class="bg-red-900/25 h-2/5 flex text-white justify-center items-center">
-                <span class="absolute w-32 text-center bg-black/50 px-2.5 py-1 font-bold text-base rounded bottom-[2%]">{% trans 'Stop Loss' %}</span>
-                <input name="stop" class="w-44 absolute bg-black/50 px-2.5 py-1 rounded bottom-[13%]" type="text">
-              </div>
-            </div>
-          </form>
-
+          {% comment %}
+            Entry + Stop + Target
+          {% endcomment %}
+          {% block form2 %}
+            {% include "trade/new_form2.html" %}
+          {% endblock %} 
         </div>
       </div>
     </div>
   </div>
-
-{% endblock trade_position_content %}
+{% endblock %}
 
 {% comment %} the bottom sectoin of the postion box {% endcomment %}
 {% block trade_bot_position %}
-  <div class="row d-flex text-center">
-    <div class="col-12 w-100">{% trans "New balance after trade" %}</div> 
-    <div class="col-6">{% trans "In case of loss" %}: <span>20</span></div>
-    <div class="col-6">{% trans "In case of win" %}: <span>40</span></div>
-    <div class="col text-center">
-      {% if msg is not None %} 
-        <div class="alert alert-success">{% trans "Balance Saved." %}</div>
-      {% else %}
-        <div class="alert alert-danger">{% trans "Balance Not Saved Yet." %}</div>
-      {% endif %}
-    </div>
-  </div>
-{% endblock trade_bot_position %}
+  {% include "trade/new_bot.html" %}
+{% endblock %}
 
 
-{% block trade_new_content %}
-{% endblock trade_new_content %}

@@ -1,0 +1,68 @@
+{% load static %} <!-- this will let us to use static -->
+{% load i18n %} <!-- to use {% trans 'something' %} -->
+
+{% block form1 %}
+  <form id="form1" class="card-body needs-validation" action={% url 'new_trade_commit' %} method="post" onsubmit="return validateForm();" novalidate>
+    {% csrf_token %}
+    <div class="row">
+
+      <!-- Symbol -->
+      <div class="mb-3">
+        <label for="form1_symbol" class="form-label">{% trans "Symbol" %} :</label>
+           <input id="form1_symbol" name='symbol' oninput="this.value = this.value.toUpperCase();" class="form-control" placeholder="عیار">
+      </div>
+
+      <!-- Stop Loss Percentage -->
+      <div class="mb-3">
+        <label for="stop" class="form-label">{% trans "Enter the Stop Loss % Here:" %}</label>
+        <div class="input-group">
+          <span class="input-group-text" id="basic-addon3">%</span>
+          <input name="stop_loss_percentage" type="text" class="form-control" id="form1_stopp" aria-describedby="basic-addon3 basic-addon4" autofocus required>
+          <div class="invalid-feedback">
+            {% trans "Please provide a valid % of stop loss." %}
+          </div>
+        </div>
+        <div class="form-text" id="basic-addon4">{% trans "example: 5 (means 5%)." %}</div>
+      </div>
+
+      <!-- Risk Reward -->
+      <div class="mb-3">
+        <label for="form1_risk_reward" class="form-label">{% trans "Enter the Risk/Reward Ratio:" %}</label>
+        <input name="risk_reward" type="text" class="form-control" id="form1_risk_reward" aria-describedby="basic-addon3 basic-addon4" required>
+        <div class="invalid-feedback">
+          {% trans "Please provide a valid risk reward ratio." %}
+        </div>
+      </div>
+
+      <!-- time frame -->
+      <div class="mb-3">
+      <label class="form-label" for="form1_tf">{% trans 'TF' %}</label>
+      <input name="timeframe" id="form1_tf" class="form-control" type="text">
+      </div>
+
+      <!-- strategy -->
+      <div class="mb-3">
+      <label class="form-label" for="form1_strategy">{% trans 'Strategy' %}</label>
+      <input name="strategy" id="form1_strategy" class="form-control" type="text">
+      </div>
+
+      <!-- Commission -->
+      <div class="mb-3">
+      <label class="form-label" for="form1_commission">{% trans 'Commision' %}</label>
+      <input name="commission" id="form1_commission" class="form-control" type="text">
+      </div>
+
+
+      <!-- Amount -->
+      <div class="mb-3">
+        <label for="form1_amount" class="form-label">{% trans "amount balance for this trade" %} :</label>
+        <input name="amount" id="form1_amount" class="form-control" type="text">
+      </div>
+
+      <!-- Broker -->
+      <input type="hidden" name="broker" value="" id="form1_broker">
+      <button class="btn btn-primary w-100 mt-3">{% trans "Save" %}</button>
+    </div>
+  </form>
+{% endblock %}
+

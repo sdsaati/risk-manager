@@ -1,6 +1,11 @@
 {% extends 'trade/layout.html' %} <!-- we want to use a layout -->
 {% load static %} <!-- this will let us to use static -->
 {% load i18n %} <!-- to use {% trans 'something' %} -->
+{% block js_head %}
+  <script>
+
+  </script>
+{% endblock %}
 {% comment %} the top sectoin of the position box {% endcomment %}
 {% block trade_top_position %}
   <script>
@@ -108,12 +113,12 @@
       </div>
     </div>
   </form>
-{% endblock trade_top_position %}
+{% endblock %}
 
 {% comment %} Positoin box {% endcomment %}
 {% block trade_position_content %}
 
-{% endblock trade_position_content %}
+{% endblock %}
 
 {% comment %} the bottom sectoin of the postion box {% endcomment %}
 {% block trade_bot_position %}
@@ -126,7 +131,6 @@
       {% endif %}
     </div>
   </div>
-{% endblock trade_bot_position %}
+{% endblock %}
 
-{% block trade_new_content %}
-{% endblock trade_new_content %}
+
