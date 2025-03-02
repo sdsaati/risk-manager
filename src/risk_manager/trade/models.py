@@ -96,6 +96,10 @@ class UserBroker(models.Model):
     def available_balance(self):
         return self.balance - self.defined_reserve
 
+    @property
+    def risk(self) -> d:
+        return d(self.riskPercent) * self.available_balance / d(100)
+
     def reserve_is_empty_update_balance(self):
         """if you loss so that you don't have any reserve anymore,
         here we update the balance of user, and compute the new

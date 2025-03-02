@@ -28,6 +28,16 @@ from trade.models import Broker, RR_Stop_Factory, Symbol, Trade, UserBroker
 logger = logging.getLogger("django")
 
 
+def get_user(req):
+    """
+    this is not a view, this is only a helper function that returns current user
+    """
+    if req.user.is_authenticated:
+        return User.objects.get(username=req.user)
+    else:
+        redirect("accounts/login")
+
+
 def index(req):
     """_summary_
 
@@ -50,6 +60,9 @@ def new(req):
     # if we came from new_commit() view
     # logger.warn("[trade.new: View]")
     viewname = "new"
+
+    user = get_user(req)
+
     msg = None
     for m in get_messages(req):
         msg = m
@@ -72,17 +85,11 @@ def new_commit(req):
     viewname = "new"
     p = funcs.Post(req)  # validate and get the posted data
     # Let's get our models and create a new instance
-    broker: Broker = None
-    symbol: Symbol = None
-    user: User = None
-    commission: d | None = None
+    broker: Broker = None  # type: ignore
+    symbol: Symbol = None  # type: ignore
+    commission: d | None = None  # type: ignore
 
-    if req.user.is_authenticated:
-        # a new instance of user
-        user = User.objects.get(username=req.user)
-    else:
-        # We should go to log-in page
-        redirect("accounts/login")
+    user = get_user(req)
 
     # find the broker and put it inside a new instance
     broker, created = Broker.objects.get_or_create(name=p.get("broker"))
@@ -153,25 +160,6 @@ def new_commit(req):
     )  # send a message to front-end to notify it that data is saved
     return HttpResponsePermanentRedirect(url)
 
-    # # fill the Relationship of UserBroker with broker and user
-    # try:
-    #     user_broker = UserBroker.objects.get(
-    #         broker=broker,
-    #         user=user
-    #     )
-    # except UserBroker.DoesNotExist:
-    #     user_broker = None
-
-    # TODO
-    # user_broker.balance =
-    # user_broker.riskPercent =
-    # user_broker.reserve =
-
-    # TODO
-    # us.result = p.get('result')
-    # TODO
-    # us.isPositionChanged = bool(p.get(''))
-
 
 @login_required()
 def balance(req):
@@ -187,9 +175,7 @@ def balance(req):
         msg = m
         break
     title = _("Add/Remove Balance")
-    user: User = None
-    if req.user.is_authenticated:
-        user = User.objects.get(username=req.user)
+    user = get_user(req)
 
     # NOTE: Use below codes if you want only add/remove balance to the brokers you already traded:
     ubs: QuerySet[UserBroker] = UserBroker.objects.select_related("broker").filter(
@@ -214,8 +200,7 @@ def balance(req):
 @login_required()
 def balance_commit(req):
     p = funcs.Post(req)  # validate and get the posted data
-    if req.user.is_authenticated:
-        user: User = User.objects.get(username=req.user)  # type: ignore
+    user = get_user(req)
     broker = p.get("broker")
     balance: d = d(p.get("balance"))  # type: ignore
     broker_object = Broker.objects.get(name=broker)
@@ -248,42 +233,31 @@ def balance_commit(req):
     )
 
 
-def api_commission(req):
+def api_all(req):
     if req.method == "GET":
-        symbol_name = req.GET.get("symbol")
+        user: User = get_user(req)  # type: ignore
         broker_name = req.GET.get("broker")
-
-        broker: Broker = Broker.objects.filter(name=broker_name).last()
-        # symbol: Symbol = get_object_or_404(Symbol, name=symbol_name, broker=broker)
-        symbol: Symbol = Symbol.objects.filter(name=symbol_name, broker=broker).last()
+        sym_name = req.GET.get("symbol")
+        broker: Broker = Broker.objects.filter(name=broker_name).last()  # type: ignore
+        ub: UserBroker = UserBroker.objects.filter(user=user, broker=broker).order_by("id").last()  # type: ignore
+        sym: Symbol = Symbol.objects.filter(broker=broker, name=sym_name).order_by("id").last()  # type: ignore
 
         commission = None
-        # us: UserSymbol = UserSymbol.objects.filter(user=user, symbol=symbol).first()
-        if symbol.commission != broker.defaultCommission:
-            commission = symbol.commission
+        if sym.commission != broker.defaultCommission:
+            commission = sym.commission
         else:
             commission = broker.defaultCommission
 
-        # ic(commission)
-        return JsonResponse(commission, safe=False)
-
-
-def api_risk(req):
-    if req.method == "GET":
-        user = None
-        if req.user.is_authenticated:
-            user = User.objects.get(username=req.user)
-
-        broker_name = req.GET.get("broker")
-        sym_name = req.GET.get("symbol")
-        broker: Broker = Broker.objects.filter(name=broker_name).last()
-        ub: UserBroker = UserBroker.objects.filter(user=user, broker=broker).last()
-        sym: Symbol = Symbol.objects.filter(broker=broker, name=sym_name).last()
-        if sym:
-            trade: Trade = (
-                Trade.objects.filter(ub=ub, symbol=sym).order_by("-id").first()
-            )
-            ic(trade.risk)
-            if trade:
-                return JsonResponse(trade.risk, safe=False)
-        return JsonResponse({"message": "No trades found"}, status=404, safe=False)
+        return JsonResponse(
+            {
+                "balance": ub.balance,
+                "defined_reserve": ub.defined_reserve,
+                "risk_percent": ub.riskPercent,
+                "reserve_percent": ub.reservePercent,
+                "reserve": ub.reserve,
+                "available": ub.available_balance,
+                "risk": ub.risk,
+                "commission": commission,
+            },
+            safe=False,
+        )

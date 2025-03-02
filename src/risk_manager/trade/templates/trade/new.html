@@ -2,14 +2,19 @@
 {% load static %} <!-- this will let us to use static -->
 {% load i18n %} <!-- to use {% trans 'something' %} -->
 {% block js_head %}
-    <script>
-        /* Share codes between form1 and form2 */
-        $(document).ready(function(){
-          /* $("input").keyup(compute_amount) */
-          {% include "trade/new_form1.js" %}
-          {% include "trade/new_form2.js" %} 
-        });
-    </script>
+  <script>
+    let ub = null
+    /* Share codes between form1 and form2 */
+    $(document).ready(function(){
+      try
+      {
+        $("#form1 input").keyup(compute_amount_form1)
+        $("#form2 input").keyup(compute_amount_form2)
+      }
+      catch (err){
+      }
+    });
+  </script>
 {% endblock %}
 
 {% block trade_top_position %}
@@ -17,7 +22,7 @@
 {% endblock %}
 
 {% block trade_position_content %}
-    <div class="accordion" id="accordionExample">
+  <div class="accordion" id="accordionExample">
     <div class="accordion-item">
       <h2 class="accordion-header">
         <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
@@ -58,6 +63,10 @@
 {% comment %} the bottom sectoin of the postion box {% endcomment %}
 {% block trade_bot_position %}
   {% include "trade/new_bot.html" %}
+  <script>
+  {% include "trade/new_form1.js" %}
+  {% include "trade/new_form2.js" %} 
+  </script>
 {% endblock %}
 
 

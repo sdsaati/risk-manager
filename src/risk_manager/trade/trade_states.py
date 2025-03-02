@@ -190,7 +190,9 @@ class NoneToNone(State):
         except:
             self.after().ub.balance = UserBroker.objects.last().balance
             self.after().ub.reserve = UserBroker.objects.last().reserve
-        self.after().amount = self.after().amount_per_trade
+        # NOTE: I think we shouldn't change amount at all because we get it from client
+        # self.after().amount = self.after().amount_per_trade
+
         # alls = self.all_records_after()
 
 
@@ -206,7 +208,8 @@ class NoneToTrueOrFalse(State):
             previews_trade_balance=self.before().ub.balance,
             previews_trade_reserve=self.before().ub.reserve,
         )
-        self.after().amount = self.after().amount_per_trade
+        # NOTE: I think we shouldn't change amount at all because we get it from client
+        # self.after().amount = self.after().amount_per_trade
         self.casace_update_trades_after_here()
 
 
@@ -218,7 +221,6 @@ class TrueToFalseViceVerca(State):
     """
 
     def handle(self):
-        ic("#######", self.prev().balance, "########")
         try:
             self.after().update_reserve_and_balance(
                 previews_trade_balance=self.prev().balance,
@@ -229,5 +231,6 @@ class TrueToFalseViceVerca(State):
                 previews_trade_balance=UserBroker.objects.last().balance,
                 previews_trade_reserve=UserBroker.objects.last().reserve,
             )
-        self.after().amount = self.after().amount_per_trade
+        # NOTE: I think we shouldn't change amount at all because we get it from client
+        # self.after().amount = self.after().amount_per_trade
         self.casace_update_trades_after_here()

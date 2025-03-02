@@ -15,6 +15,5 @@ urlpatterns = [
     ),  # db response
     path("balance-commit/", views.balance_commit, name="balance_commit"),
     path("new-commit/", views.new_commit, name="new_trade_commit"),  # saving into db
-    path("api_commission/", views.api_commission, name="api_commission"),
-    path("api_risk/", views.api_risk, name="api_risk"),
+    path("api_all/", views.api_all, name="api_all"),
 ]
