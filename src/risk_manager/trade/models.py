@@ -57,10 +57,15 @@ class Symbol(models.Model):
 
     # if this is null, then we must use the
     # Broker.defaultCommission value for this field
-    commission = models.DecimalField(max_digits=15, decimal_places=4, default=d("0.0"))
+    commission = models.DecimalField(
+        max_digits=15, decimal_places=4, blank=True, null=True
+    )
 
     def __str__(self):
-        return f"{self.name}({d(self.commission)})"
+        if self.commission is not None:
+            return f"{self.name}({d(self.commission)})"
+        else:
+            return f"{self.name}"
 
 
 class UserBroker(models.Model):

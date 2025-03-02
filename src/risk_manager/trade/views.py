@@ -243,10 +243,10 @@ def api_all(req):
         sym: Symbol = Symbol.objects.filter(broker=broker, name=sym_name).order_by("id").last()  # type: ignore
 
         commission = None
-        if sym.commission != broker.defaultCommission:
-            commission = sym.commission
-        else:
+        if sym.commission is None:
             commission = broker.defaultCommission
+        else:
+            commission = sym.commission
 
         return JsonResponse(
             {

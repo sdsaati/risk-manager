@@ -3,11 +3,14 @@
 {% load i18n %} <!-- to use {% trans 'something' %} -->
 {% block js_head %}
   <script>
-    let ub = null
+    window.ub = null
     /* Share codes between form1 and form2 */
     $(document).ready(function(){
       try
       {
+        document.getElementById('broker').selectedIndex = 0;
+        document.getElementById('form1').reset();
+        document.getElementById('form2').reset();
         $("#form1 input").keyup(compute_amount_form1)
         $("#form2 input").keyup(compute_amount_form2)
       }

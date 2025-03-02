@@ -4,6 +4,7 @@
   <script>
     function get_all(broker=null, symbol=null) {
       symbol = document.getElementById('form1_symbol').value
+      if (!symbol) return 
       const url = "{% url 'api_all' %}"
       $.ajax({
         url: url,
@@ -13,18 +14,18 @@
         data: { "broker": broker, "symbol": symbol },
         success: function(response) {
           // Store in global variable
-          ub = {}
-          ub.balance = new Decimal(response.balance) 
-          ub.defined_reserve = new Decimal(response.defined_reserve)
-          ub.risk_percent = response.risk_percent
-          ub.reserve_percent = response.reserve_percent
-          ub.reserve = new Decimal(response.reserve)
-          ub.available = new Decimal(response.available)
-          ub.risk = new Decimal(response.risk)
-          ub.commission = new Decimal(response.commission) 
+          window.ub = {}
+          window.ub.balance = new Decimal(response.balance) 
+          window.ub.defined_reserve = new Decimal(response.defined_reserve)
+          window.ub.risk_percent = response.risk_percent
+          window.ub.reserve_percent = response.reserve_percent
+          window.ub.reserve = new Decimal(response.reserve)
+          window.ub.available = new Decimal(response.available)
+          window.ub.risk = new Decimal(response.risk)
+          window.ub.commission = new Decimal(response.commission) 
         },
         error: function(xhr, status, error) {
-          ub = null
+          window.ub = null
           console.log("Couln't fetch the data from server: ", error)
         }
       });
@@ -41,6 +42,7 @@
       selectedOption.text = selectedOption.text.toLowerCase();
       selectedOption.value = selectedOption.value.toLowerCase();
       try {
+        if (!selectedOption.value) return; // Exit if no broker selected
         get_all(selectedOption.value)
 
         document.getElementById("form1_broker").value = selectedOption.value;
@@ -71,8 +73,8 @@
     }
   </script> 
   <pre class="px-1 py-0 m-2 text-center">{% trans "Reserve" %}: <span class="m-0" id="place-reserve"></span></pre>
-  <div class="progress m-0" role="progressbar" aria-label="" aria-valuemin="0" aria-valuemax="100">
-    <div id="progress-reserve" class="progress-bar progress-bar-striped progress-bar-animated bg-info" style="width: 0%"></div>
+  <div class="progress m-0 align-middle" role="progressbar" aria-label="" aria-valuemin="0" aria-valuemax="100">
+    <div id="progress-reserve" class="progress-bar progress-bar-striped progress-bar-animated bg-info align-middle fs-6 font-monospace m-0 p-0" style="width: 0%"></div>
   </div>
 
   <pre class="px-1 py-0 mt-2 mb-0 text-center">{% trans "Balance" %}: <span class="m-0" id="place-balance"></span></pre>
