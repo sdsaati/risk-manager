@@ -36,5 +36,10 @@ function compute_amount_form1(input) {
 
   document.getElementById('form1_commission').value = ub.commission
   document.getElementById('form1_amount').value = amount.toFixed(4) 
-  document.getElementById('form1_amount_percent').innerHTML = "<pre>" + amount.dividedBy(ub.balance).times(100).toFixed(0) + "% of account balance("+ ub.balance.toFixed(4) +")</pre>"
+  document.getElementById('form1_amount_percent').innerHTML = "<pre>" + amount.dividedBy(ub.balance).times(100).toFixed(0) + "% of account balance("+ ub.balance.toFixed(4) + ")</pre>"
+
+
+  document.getElementById('loss').innerHTML = "<pre>" + ub.balance.minus(risk).toFixed(4) + "</pre>"
+  document.getElementById('win').innerHTML = "<pre>" + ub.balance.plus(risk.times(rr)).toFixed(4) + "</pre>"
+
 }

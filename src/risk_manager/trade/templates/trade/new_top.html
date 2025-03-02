@@ -3,8 +3,10 @@
 {% block trade_top_position %}
   <script>
     function get_all(broker=null, symbol=null) {
-      symbol = document.getElementById('form1_symbol').value
-      if (!symbol) return 
+      symbol2 = document.getElementById('form2_symbol').value
+      symbol1 = document.getElementById('form1_symbol').value
+      if (!symbol1 && !symbol2) return 
+      symbol = (!symbol2) ? symbol1 : symbol2
       const url = "{% url 'api_all' %}"
       $.ajax({
         url: url,
