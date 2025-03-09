@@ -101,6 +101,9 @@ class State(ABC):
         return self.state_manager.trade_class
 
     def prev(self) -> Trade | None:
+        """
+        Previews record!
+        """
         # return (
         #     self.get_trade_class()
         #     .objects.filter(id__lt=self.state_manager.trade_edited_record.id)
@@ -118,9 +121,15 @@ class State(ABC):
         )
 
     def before(self) -> Trade:
+        """
+        This record but before the edits
+        """
         return self.state_manager.trade_before_edit_record
 
     def after(self) -> Trade:
+        """
+        This record but after the edits
+        """
         return self.state_manager.trade_edited_record
 
     def all_records_after(self, pk_id=None) -> QuerySet[Trade] | None:

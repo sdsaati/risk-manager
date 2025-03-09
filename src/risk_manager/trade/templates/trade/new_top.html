@@ -74,13 +74,14 @@
       }
     }
   </script> 
-  <pre class="px-1 py-0 m-2 text-center">{% trans "Reserve" %}: <span class="m-0" id="place-reserve"></span></pre>
+  <pre class="px-1 py-0 my-2 text-center bg-primary fs-6 mx-auto w-100">{% trans "Reserve" %}: <span class="m-0" id="place-reserve"></span></pre>
   <div class="progress m-0 align-middle" role="progressbar" aria-label="" aria-valuemin="0" aria-valuemax="100">
-    <div id="progress-reserve" class="progress-bar progress-bar-striped progress-bar-animated bg-info align-middle fs-6 font-monospace m-0 p-0" style="width: 0%"></div>
+    <div id="progress-reserve" class="progress-bar progress-bar-striped progress-bar-animated bg-warning-subtle align-middle fs-6 font-monospace m-0 p-0" style="width: 0%"></div>
   </div>
 
-  <pre class="px-1 py-0 mt-2 mb-0 text-center">{% trans "Balance" %}: <span class="m-0" id="place-balance"></span></pre>
-  <pre class="px-1 py-0 mt-2 mb-0 text-center">{% trans "Balance for trade" %}: <span class="m-0" id="place-available"></span></pre>
+  <pre class="px-1 py-0 my-2 mb-0 text-center bg-primary-subtle fs-6 mx-auto w-100">{% trans "Balance" %}: <span class="m-0" id="place-balance"></span></pre>
+  <pre class="px-1 py-0 my-2 mb-0 text-center bg-success fs-6 mx-auto w-100">{% trans "Balance for trade" %}: <span class="m-0" id="place-available"></span></pre>
+  <hr></hr>
   <div class="mb-3">
     <label for="broker" class="form-label">{% trans "Select your broker." %}</label>
     <select name='broker' id="broker" onchange="handleSelectChange(this)" class="form-select" required>

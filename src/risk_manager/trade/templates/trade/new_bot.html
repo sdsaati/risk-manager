@@ -3,8 +3,8 @@
 {% block trade_bot_position %}
   <div class="row d-flex text-center">
     <div class="col-12 w-100">{% trans "New balance after trade" %}</div> 
-    <div class="col-6">{% trans "In case of loss" %}: <span id="loss">20</span></div>
-    <div class="col-6">{% trans "In case of win" %}: <span id="win">40</span></div>
+    <div class="col-6">{% trans "In case of loss" %}: <span id="loss" class="text-warning fs-4"></span></div>
+    <div class="col-6">{% trans "In case of win" %}: <span id="win" class="text-info fs-4"></span></div>
     <div class="col text-center">
       {% if msg is not None %} 
         <div class="alert alert-success">{% trans "Balance Saved." %}</div>
