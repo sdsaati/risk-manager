@@ -256,6 +256,15 @@ class Trade(models.Model):
     def reserve(self):
         return self.ub.reserve
 
+    def check_reserve_overflow(self):
+        """
+        If reserve has a value above of defined reserve, then
+        it need to be set to defined reserve, and delta added to balance
+        """
+        if self.ub.reserve > self.ub.defined_reserve:
+            self.balance = self.balance + (self.ub.reserve - self.ub.defined_reserve)
+            self.ub.reserve = self.ub.defined_reserve
+
     def __str__(self):
         return self.__dict__.__str__()
 
@@ -285,6 +294,7 @@ class Trade(models.Model):
         # if our reserve isn't full and we made a profit or we loss but have a bit reserve
         if (p and q) or ((not p) and z):
             self.ub.reserve = self.ub.reserve + self.profit(result)
+            self.check_reserve_overflow()
             # self.ub.balance = self.ub.balance
             ic(
                 "we are in first cond",
