@@ -262,7 +262,9 @@ class Trade(models.Model):
         it need to be set to defined reserve, and delta added to balance
         """
         if self.ub.reserve > self.ub.defined_reserve:
-            self.balance = self.balance + (self.ub.reserve - self.ub.defined_reserve)
+            self.ub.balance = self.ub.balance + (
+                self.ub.reserve - self.ub.defined_reserve
+            )
             self.ub.reserve = self.ub.defined_reserve
 
     def __str__(self):
