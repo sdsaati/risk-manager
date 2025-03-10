@@ -4,6 +4,7 @@ import logging
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.models.signals import pre_save  # the actual signal
+from django.db.models.signals import post_delete  # the actual signal
 from django.dispatch import receiver  # decorator for connecting signal
 from icecream import ic
 from trade.models import Trade
@@ -74,3 +75,13 @@ def check_balance_is_changed(sender: Trade, instance: Trade, **kwargs):
                 instance.symbol.save()
                 instance.symbol.broker.save()
                 ic("AFTER:", instance.ub.balance, instance.ub.reserve, instance.amount)
+
+
+@receiver(post_delete, sender=Trade)
+def delete_ub_on_trade_deletion(sender, instance, **kwargs):
+    """
+    If user deleted a trade, we must be sure that the corresponding user broker is also removed
+    """
+    with transaction.atomic():
+        if instance.ub:
+            instance.ub.delete()
