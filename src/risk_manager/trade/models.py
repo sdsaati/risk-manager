@@ -5,7 +5,8 @@
     and the by migrate command we can apply those queries
 """
 
-from __future__ import annotations  # Delays evaluation of type hints until runtime
+# Delays evaluation of type hints until runtime
+from __future__ import annotations
 import logging
 from abc import ABC, abstractmethod
 from decimal import Decimal as d
@@ -80,15 +81,19 @@ class UserBroker(models.Model):
     broker = models.ForeignKey(Broker, on_delete=models.SET_NULL, null=True)
 
     # the whole balance that a user has in a broker
-    balance = models.DecimalField(max_digits=15, decimal_places=4, default=d(0))
+    balance = models.DecimalField(
+        max_digits=15, decimal_places=4, default=d(0))
 
     # current reserve that we can take our risk from
-    reserve = models.DecimalField(max_digits=15, decimal_places=4, default=d(0))
+    reserve = models.DecimalField(
+        max_digits=15, decimal_places=4, default=d(0))
     # with this we can compute definedReserve by using the balance of user
-    reservePercent = models.DecimalField(max_digits=15, decimal_places=4, default=d(0))
+    reservePercent = models.DecimalField(
+        max_digits=15, decimal_places=4, default=d(0))
     # with this we can compute risk for each trade
     # by using available balance for trading
-    riskPercent = models.DecimalField(max_digits=15, decimal_places=4, default=d(0))
+    riskPercent = models.DecimalField(
+        max_digits=15, decimal_places=4, default=d(0))
 
     def __str__(self):
         return self.user.username + " in " + self.broker.name
@@ -117,7 +122,7 @@ class UserBroker(models.Model):
         self.reserve = self.defined_reserve
         # NOTE: We don't need to save this because inside the
         # signal, we save ub(this object) too
-        ## self.save()
+        # self.save()
 
 
 class StopAndRiskrewardStrategy(ABC):
@@ -216,9 +221,12 @@ class Trade(models.Model):
     symbol: Symbol = models.ForeignKey(Symbol, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
     date_ended = models.DateTimeField(auto_now=True, null=True, blank=True)
-    stop = models.DecimalField(max_digits=25, decimal_places=4, null=True, blank=True)
-    entry = models.DecimalField(max_digits=25, decimal_places=4, null=True, blank=True)
-    target = models.DecimalField(max_digits=25, decimal_places=4, null=True, blank=True)
+    stop = models.DecimalField(
+        max_digits=25, decimal_places=4, null=True, blank=True)
+    entry = models.DecimalField(
+        max_digits=25, decimal_places=4, null=True, blank=True)
+    target = models.DecimalField(
+        max_digits=25, decimal_places=4, null=True, blank=True)
     # This will be a computational property
     #    riskReward = models.DecimalField(max_digits=25,
     #                                     decimal_places=4,
@@ -227,12 +235,16 @@ class Trade(models.Model):
     result_amount = models.DecimalField(
         null=True, blank=True, max_digits=25, decimal_places=4, default=None
     )
-    amount = models.DecimalField(max_digits=25, decimal_places=4, null=True, blank=True)
-    picture = models.CharField(max_length=500, null=True, blank=True, default="")
+    amount = models.DecimalField(
+        max_digits=25, decimal_places=4, null=True, blank=True)
+    picture = models.CharField(
+        max_length=500, null=True, blank=True, default="")
     comment = models.TextField(null=True, blank=True, default="")
     isPositionChanged = models.BooleanField(default=False)
-    timeFrame = models.CharField(max_length=400, null=True, blank=True, default="")
-    strategy = models.CharField(max_length=500, null=True, blank=True, default="")
+    timeFrame = models.CharField(
+        max_length=400, null=True, blank=True, default="")
+    strategy = models.CharField(
+        max_length=500, null=True, blank=True, default="")
     risk_reward = models.DecimalField(
         null=True, blank=True, max_digits=25, decimal_places=4, default=None
     )
@@ -243,7 +255,8 @@ class Trade(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         logger.warn(
-            f"we saved ub: {str(self.ub.id)} with this balance: {str(self.ub.balance)}"
+            f"we saved ub: {str(self.ub.id)} with this balance: {
+                str(self.ub.balance)}"
         )
 
     # Methods (Services of this model)
@@ -315,7 +328,8 @@ class Trade(models.Model):
                 + self.profit(result)
             )
             self.ub.reserve = self.ub.defined_reserve  # now reset the reserve
-            ic("we are in second cond", p, q, self.ub.reserve, self.ub.defined_reserve)
+            ic("we are in second cond", p, q,
+               self.ub.reserve, self.ub.defined_reserve)
 
         # there is no reserve at all and we did a loss
         if (not p) and (not z):
@@ -323,7 +337,8 @@ class Trade(models.Model):
             # definedReserve
             self.ub.reserve_is_empty_update_balance()
             self.update_reserve_and_balance(result=result)
-            ic("we are in third cond", p, z, self.ub.reserve, self.ub.defined_reserve)
+            ic("we are in third cond", p, z,
+               self.ub.reserve, self.ub.defined_reserve)
 
         if save == True:
             with transaction.atomic():
@@ -357,15 +372,15 @@ class Trade(models.Model):
             res = self.result
         if res:
             return (
-                self.ub.available_balance
+                self.amount
                 * (self.stop_percent / d(100))
                 * self.risk_reward
             )
-            -(self.ub.available_balance * (self.commission / d(100)))
+            -(self.amount * self.commission)
         else:
             return -(
-                (self.ub.available_balance * (self.stop_percent / d(100)))
-                - (self.ub.available_balance * (self.commission / d(100)))
+                (self.amount * (self.stop_percent / d(100)))
+                - (self.amount * self.commission)
             )
 
     class Meta:

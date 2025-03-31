@@ -164,6 +164,7 @@ def new_commit(req):
 @login_required()
 def balance(req):
     """
+    This is a form
     If User wanted to add +money or withraw -money from
     his/her balance
     """
@@ -207,13 +208,20 @@ def balance_commit(req):
 
     try:
         last_user_balance_in_this_broker = d(
-            UserBroker.objects.filter(user=user, broker=broker_object).last().balance
+            UserBroker.objects.filter(
+                user=user, broker=broker_object).last().balance
         )
+        last_user_in_this_broker = UserBroker.objects.filter(
+            user=user, broker=broker_object).last()
         if last_user_balance_in_this_broker + balance >= d(0):
             UserBroker.objects.create(
                 broker=broker_object,
                 user=user,
                 balance=last_user_balance_in_this_broker + balance,
+                reservePercent=last_user_in_this_broker.reservePercent,
+                riskPercent=last_user_in_this_broker.riskPercent,
+                reserve=last_user_in_this_broker.reservePercent *
+                (last_user_balance_in_this_broker + balance) / d(100),
             )
             messages.info(req, "success")
     except:
@@ -238,9 +246,12 @@ def api_all(req):
         user: User = get_user(req)  # type: ignore
         broker_name = req.GET.get("broker")
         sym_name = req.GET.get("symbol")
-        broker: Broker = Broker.objects.filter(name=broker_name).last()  # type: ignore
-        ub: UserBroker = UserBroker.objects.filter(user=user, broker=broker).order_by("id").last()  # type: ignore
-        sym: Symbol = Symbol.objects.filter(broker=broker, name=sym_name).order_by("id").last()  # type: ignore
+        broker: Broker = Broker.objects.filter(
+            name=broker_name).last()  # type: ignore
+        ub: UserBroker = UserBroker.objects.filter(
+            user=user, broker=broker).order_by("id").last()  # type: ignore
+        sym: Symbol = Symbol.objects.filter(
+            broker=broker, name=sym_name).order_by("id").last()  # type: ignore
 
         commission = None
         if sym.commission is None:

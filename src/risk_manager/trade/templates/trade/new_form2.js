@@ -46,6 +46,10 @@ function compute_amount_form2(input) {
   document.getElementById('form2_amount_percent').innerHTML = "<pre>" + amount.dividedBy(ub.balance).times(100).toFixed(0) + "% of account balance("+ ub.balance.toFixed(4) + ")</pre>"
 
 
-  document.getElementById('loss').innerHTML = "<pre>" + ub.balance.minus(risk).toFixed(4) + "</pre>"
-  document.getElementById('win').innerHTML = "<pre>" + ub.balance.plus(risk.times(rr)).toFixed(4) + "</pre>"
+  document.getElementById('loss').innerHTML = "<pre>" + ub.balance.toFixed(4) +  " - " + ub.balance.minus(ub.balance.minus(risk.plus(commission))).toFixed(4) + "</pre>"
+  document.getElementById('win').innerHTML = "<pre>" + ub.balance.toFixed(4) + " + " + ub.balance.plus(risk.minus(commission).times(rr)).minus(ub.balance).toFixed(4) + "</pre>"
+
+
+
+
 }

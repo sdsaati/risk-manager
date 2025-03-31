@@ -17,6 +17,7 @@ function compute_amount_form1(input) {
   */
  
   // (((ub.balance - ub.available) * ub.risk_percent)/ub.available) + ub.risk_percent
+  const commission = new Decimal(ub.commission)
   const risk_percent = new Decimal(ub.balance).minus(ub.available).times(ub.risk_percent).dividedBy(ub.available).plus(ub.risk_percent)
   const risk = new Decimal(risk_percent).times(ub.available).dividedBy(100)
 
@@ -29,6 +30,7 @@ function compute_amount_form1(input) {
   let server_risk = new Decimal(ub.risk)
   const amountel = new Decimal(document.getElementById('form1_amount').value || 0)
 
+
   /* 
    amount = risk / ((( stop_percent + ub.commission )) / 100)
   */
@@ -39,7 +41,7 @@ function compute_amount_form1(input) {
   document.getElementById('form1_amount_percent').innerHTML = "<pre>" + amount.dividedBy(ub.balance).times(100).toFixed(0) + "% of account balance("+ ub.balance.toFixed(4) + ")</pre>"
 
 
-  document.getElementById('loss').innerHTML = "<pre>" + ub.balance.minus(risk).toFixed(4) + "</pre>"
-  document.getElementById('win').innerHTML = "<pre>" + ub.balance.plus(risk.times(rr)).toFixed(4) + "</pre>"
+  document.getElementById('loss').innerHTML = "<pre>" + ub.balance.toFixed(4) +  " - " + ub.balance.minus(ub.balance.minus(risk.plus(commission))).toFixed(4) + "</pre>"
+  document.getElementById('win').innerHTML = "<pre>" + ub.balance.toFixed(4) + " + " + ub.balance.plus(risk.minus(commission).times(rr)).minus(ub.balance).toFixed(4) + "</pre>"
 
 }
