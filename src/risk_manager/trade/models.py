@@ -358,7 +358,7 @@ class Trade(models.Model):
     # NOTE: this method isn't used almost anywhere
     @property
     def amount_per_trade(self) -> d:
-        return self.risk / ((self.stop_percent + self.commission) / d(100))
+        return self.risk / ((self.stop_percent / d(100)) + self.commission)
 
     @property
     def risk(self) -> d:
