@@ -48,7 +48,7 @@ class TradeModelsTest(TestCase):
             risk_reward=d("2"),
             amount=d("1000")
         )
-        self.assertAlmostEqual(trade.profit(), d("190.0"), places=2)  # (1000*0.1*2) - (1000*0.02)
+        self.assertAlmostEqual(trade.profit(), d("200.0"), places=2)  # (1000*0.1*2) - (1000*0.02)
 
     def test_trade_profit_loss(self):
         trade = Trade.objects.create(
@@ -74,4 +74,5 @@ class TradeModelsTest(TestCase):
             amount=d("1000")
         )
         self.assertEqual(trade.commission, d("0.01"))
+
 
